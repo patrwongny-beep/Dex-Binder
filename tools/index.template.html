@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Dex Binder</title>
+<meta name="theme-color" content="#16181d">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: a binder of numbered pockets. Sticky header with completion, filter rail, pocket grid, bottom sheet for each slot. */
+:root{
+  --bg:#f3f2ef; --surface:#ffffff; --sunk:#e7e5e0; --line:#d6d3cc;
+  --fg:#1b1d22; --muted:#6a6c73; --accent:#d23a2c; --accent-ink:#ffffff;
+  --owned:#1f7a5c; --owned-soft:#dcefe7; --gold:#b98a1a;
+  --f-display:"Chakra Petch",ui-sans-serif,system-ui,sans-serif;
+  --f-body:"IBM Plex Sans",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#121317; --surface:#1b1d23; --sunk:#24262d; --line:#30333b;
+  --fg:#eceae6; --muted:#9a9ca4; --accent:#ef5545; --accent-ink:#ffffff;
+  --owned:#4cc49a; --owned-soft:#1c3a30; --gold:#e1b544; color-scheme:dark;}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.45 var(--f-body);-webkit-tap-highlight-color:transparent}
+img{max-width:100%}
+[hidden]{display:none!important}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wrap{padding-left:max(14px,env(safe-area-inset-left,0px));padding-right:max(14px,env(safe-area-inset-right,0px))}
+
+header.top{position:sticky;top:0;z-index:5;background:var(--bg);padding-top:env(safe-area-inset-top,0px);border-bottom:1px solid var(--line)}
+.bar{display:flex;align-items:center;gap:12px;padding-block:12px 10px}
+.brand{font-family:var(--f-display);font-weight:700;font-size:20px;letter-spacing:.02em;flex:1;min-width:0}
+.brand small{display:block;font-family:var(--f-mono);font-weight:500;font-size:11px;color:var(--muted);letter-spacing:.04em}
+.count{font-family:var(--f-display);font-size:26px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1}
+.count span{font-size:14px;color:var(--muted);font-weight:600}
+.iconbtn{border:1px solid var(--line);background:var(--surface);border-radius:10px;width:40px;height:40px;display:grid;place-items:center;flex:none}
+.iconbtn svg{width:20px;height:20px}
+.progress{height:6px;background:var(--sunk);border-radius:3px;overflow:hidden}
+.progress i{display:block;height:100%;background:var(--accent);width:0;transition:width .4s}
+.tools{display:flex;gap:8px;padding-block:10px}
+.search{flex:1;min-width:0;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:9px 12px}
+.seg{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface);flex:none}
+.seg button{border:0;background:none;padding:8px 10px;font-size:13px;font-weight:600;color:var(--muted)}
+.seg button[aria-pressed=true]{background:var(--fg);color:var(--bg)}
+.gens{display:flex;gap:6px;overflow-x:auto;padding-bottom:10px;scrollbar-width:none}
+.gens::-webkit-scrollbar{display:none}
+.chip{flex:none;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 11px;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
+.chip[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.chip em{font-style:normal;opacity:.7;font-weight:500;margin-left:4px}
+
+main{padding-block:12px 40px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(98px,1fr));gap:8px}
+.pocket{position:relative;border:1px dashed var(--line);background:transparent;border-radius:12px;padding:6px 6px 8px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0}
+.pocket .no{font-family:var(--f-mono);font-size:11px;color:var(--muted);align-self:flex-start}
+.pocket img.sp{width:64px;height:64px;image-rendering:pixelated;filter:grayscale(1);opacity:.45}
+.pocket .nm{font-size:12px;font-weight:500;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.pocket.owned{border:1px solid var(--owned);background:var(--surface)}
+.pocket.owned img.sp{filter:none;opacity:1}
+.pocket.owned .nm{color:var(--fg);font-weight:600}
+.pocket.owned::after{content:"";position:absolute;top:7px;right:7px;width:8px;height:8px;border-radius:50%;background:var(--owned)}
+.empty{text-align:center;color:var(--muted);padding:40px 0}
+
+/* sheet */
+.scrim{position:fixed;inset:0;background:rgb(0 0 0 / .45);z-index:20}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:21;background:var(--surface);border-radius:18px 18px 0 0;max-height:92vh;max-height:92dvh;overflow-y:auto;padding-bottom:max(20px,env(safe-area-inset-bottom,0px));box-shadow:0 -8px 30px rgb(0 0 0 / .2)}
+@media (min-width:700px){.sheet{left:50%;transform:translateX(-50%);width:640px;bottom:24px;border-radius:18px}}
+.sheet-head{position:sticky;top:0;background:var(--surface);display:flex;align-items:center;gap:12px;padding-block:14px 10px;border-bottom:1px solid var(--line);z-index:1}
+.sheet-head img{width:56px;height:56px;image-rendering:pixelated}
+.sheet-head h2{font-family:var(--f-display);font-size:22px;margin:0;line-height:1.1;flex:1;min-width:0}
+.sheet-head h2 small{display:block;font-family:var(--f-mono);font-size:12px;color:var(--muted);font-weight:500}
+.sheet-body{padding-block:14px;display:flex;flex-direction:column;gap:14px}
+.label{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:10px 14px;font-weight:600}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.danger{color:var(--accent)}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.row .btn{flex:1}
+.field{display:flex;flex-direction:column;gap:5px}
+.field input,.field textarea,.field select{border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:10px 12px;width:100%}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+.results{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
+.res{border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:6px;text-align:left;display:flex;flex-direction:column;gap:4px;min-width:0}
+.res img{aspect-ratio:63/88;width:100%;object-fit:cover;border-radius:6px;background:var(--sunk)}
+.res b{font-size:13px;line-height:1.25}
+.res span{font-size:12px;color:var(--muted);line-height:1.3}
+.res[aria-pressed=true]{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
+.status{font-size:13px;color:var(--muted)}
+
+.filled{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+.filled figure{margin:0;display:flex;flex-direction:column;gap:6px}
+.filled img{width:100%;aspect-ratio:63/88;object-fit:cover;border-radius:10px;background:var(--sunk)}
+.noimg{aspect-ratio:63/88;border-radius:10px;border:1px dashed var(--line);display:grid;place-items:center;color:var(--muted);font-size:12px;text-align:center;padding:10px}
+dl.facts{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:0}
+dl.facts dt{color:var(--muted);font-size:13px}
+dl.facts dd{margin:0;font-weight:500;font-variant-numeric:tabular-nums;min-width:0;overflow-wrap:anywhere}
+.confirm{border:1px solid var(--accent);border-radius:10px;padding:10px 12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.confirm p{margin:0;flex:1 1 160px}
+
+/* stats */
+.stat-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.tile{background:var(--bg);border-radius:10px;padding:10px}
+.tile b{display:block;font-family:var(--f-display);font-size:22px;font-variant-numeric:tabular-nums;line-height:1.1;overflow-wrap:anywhere}
+.tile span{font-size:12px;color:var(--muted)}
+.genrow{display:grid;grid-template-columns:64px 1fr 92px;align-items:center;gap:10px;font-size:13px;font-variant-numeric:tabular-nums}
+.genrow .progress{height:8px}
+.genrow .progress i{background:var(--owned)}
+.genrow span:last-child{text-align:right;color:var(--muted)}
+.note{font-size:13px;color:var(--muted);margin:0}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:10px;z-index:40;font-weight:500;max-width:90vw}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div class="bar">
+      <div class="brand">Dex Binder<small>NATIONAL DEX · 1–1025</small></div>
+      <div class="count" id="count">0<span>/1025</span></div>
+      <button class="iconbtn" id="statsBtn" aria-label="Stats and backup">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
+      </button>
+    </div>
+    <div class="progress" aria-hidden="true"><i id="bar"></i></div>
+    <div class="tools">
+      <input class="search" id="q" type="search" placeholder="Name or number" autocomplete="off" aria-label="Search Pokémon">
+      <div class="seg" role="group" aria-label="Show">
+        <button data-f="all" aria-pressed="true">All</button>
+        <button data-f="have" aria-pressed="false">Have</button>
+        <button data-f="need" aria-pressed="false">Need</button>
+      </div>
+    </div>
+    <div class="gens" id="gens"></div>
+  </div>
+</header>
+
+<main class="wrap"><div class="grid" id="grid"></div><p class="empty" id="none" hidden>No Pokémon match that filter.</p></main>
+
+<div class="scrim" id="scrim" hidden></div>
+<section class="sheet wrap" id="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="sheetTitle"></section>
+<input type="file" id="restoreFile" accept="application/json,.json" hidden>
+
+<script>
+const SPECIES = __SPECIES__;
+const GEN_START=[1,152,252,387,494,650,722,810,906];
+const ROMAN=["I","II","III","IV","V","VI","VII","VIII","IX"];
+const SPRITE=n=>`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${n}.png`;
+const pad=n=>String(n).padStart(4,"0");
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+/* ---------- storage (IndexedDB, on this phone only) ---------- */
+let dbp;
+function db(){ if(!dbp) dbp=new Promise((res,rej)=>{const r=indexedDB.open("dexbinder",1);
+  r.onupgradeneeded=()=>{const d=r.result;d.createObjectStore("entries",{keyPath:"dex"});d.createObjectStore("photos");d.createObjectStore("meta");};
+  r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);}); return dbp;}
+async function tx(store,mode,fn){const d=await db();return new Promise((res,rej)=>{const t=d.transaction(store,mode);const s=t.objectStore(store);const out=fn(s);t.oncomplete=()=>res(out instanceof IDBRequest?out.result:out);t.onerror=()=>rej(t.error);});}
+const getAll=st=>tx(st,"readonly",s=>s.getAll());
+const put=(st,v,k)=>tx(st,"readwrite",s=>k===undefined?s.put(v):s.put(v,k));
+const del=(st,k)=>tx(st,"readwrite",s=>s.delete(k));
+const get=(st,k)=>tx(st,"readonly",s=>s.get(k));
+async function getAllKV(st){const d=await db();return new Promise((res,rej)=>{const out={};const t=d.transaction(st);const c=t.objectStore(st).openCursor();c.onsuccess=()=>{const cur=c.result;if(cur){out[cur.key]=cur.value;cur.continue();}};t.oncomplete=()=>res(out);t.onerror=()=>rej(t.error);});}
+
+let entries=new Map(); let settings={currency:"RM",lastBackup:null};
+let filter="all", gen=0, query="";
+
+async function load(){
+  try{ (await getAll("entries")).forEach(e=>entries.set(e.dex,e));
+       const s=await get("meta","settings"); if(s) settings={...settings,...s}; }catch(e){ toast("Couldn't open storage on this device."); }
+  if(navigator.storage&&navigator.storage.persist){ try{ await navigator.storage.persist(); }catch(e){} }
+  renderGens(); render();
+}
+const money=v=>v==null||v===""?"—":`${settings.currency} ${Number(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+
+/* ---------- grid ---------- */
+function genOf(n){let g=0;for(let i=0;i<9;i++) if(n>=GEN_START[i]) g=i;return g;}
+function renderGens(){
+  const counts=Array(9).fill(0); entries.forEach(e=>counts[genOf(e.dex)]++);
+  const tot=i=>(i<8?GEN_START[i+1]:1026)-GEN_START[i];
+  $("#gens").innerHTML=`<button class="chip" data-g="0" aria-pressed="${gen===0}">All gens</button>`+
+    ROMAN.map((r,i)=>`<button class="chip" data-g="${i+1}" aria-pressed="${gen===i+1}">Gen ${r}<em>${counts[i]}/${tot(i)}</em></button>`).join("");
+}
+function render(){
+  const q=query.trim().toLowerCase(); const qn=parseInt(q,10);
+  let html="",shown=0;
+  for(let n=1;n<=1025;n++){
+    const [name]=SPECIES[n-1]; const have=entries.has(n);
+    if(filter==="have"&&!have) continue; if(filter==="need"&&have) continue;
+    if(gen&&genOf(n)!==gen-1) continue;
+    if(q){ if(!isNaN(qn)&&/^\d+$/.test(q)){ if(!String(n).startsWith(String(qn))) continue; } else if(!name.toLowerCase().includes(q)) continue; }
+    shown++;
+    html+=`<button class="pocket${have?" owned":""}" data-n="${n}" aria-label="#${n} ${esc(name)}${have?", owned":", missing"}"><span class="no">#${pad(n)}</span><img class="sp" loading="lazy" decoding="async" alt="" width="64" height="64" src="${SPRITE(n)}"><span class="nm">${esc(name)}</span></button>`;
+  }
+  $("#grid").innerHTML=html; $("#none").hidden=shown>0;
+  $("#count").innerHTML=`${entries.size}<span>/1025</span>`;
+  $("#bar").style.width=(entries.size/1025*100)+"%";
+}
+$("#q").addEventListener("input",e=>{query=e.target.value;render();});
+document.querySelectorAll(".seg button").forEach(b=>b.addEventListener("click",()=>{filter=b.dataset.f;document.querySelectorAll(".seg button").forEach(x=>x.setAttribute("aria-pressed",x===b));render();}));
+$("#gens").addEventListener("click",e=>{const b=e.target.closest(".chip");if(!b)return;gen=+b.dataset.g;renderGens();render();});
+$("#grid").addEventListener("click",e=>{const p=e.target.closest(".pocket");if(p) openSlot(+p.dataset.n);});
+
+/* ---------- sheet ---------- */
+let urls=[];
+function freeUrls(){urls.forEach(u=>URL.revokeObjectURL(u));urls=[];}
+function openSheet(html){freeUrls();$("#sheet").innerHTML=html;$("#sheet").hidden=false;$("#scrim").hidden=false;document.body.style.overflow="hidden";$("#sheet").scrollTop=0;}
+function closeSheet(){$("#sheet").hidden=true;$("#scrim").hidden=true;document.body.style.overflow="";freeUrls();if(history.state&&history.state.sheet)history.back();}
+$("#scrim").addEventListener("click",closeSheet);
+window.addEventListener("popstate",()=>{if(!$("#sheet").hidden){$("#sheet").hidden=true;$("#scrim").hidden=true;document.body.style.overflow="";freeUrls();}});
+function pushSheet(){ if(!(history.state&&history.state.sheet)) history.pushState({sheet:1},""); }
+const closeBtn=`<button class="iconbtn" data-act="close" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>`;
+const head=n=>`<div class="sheet-head"><img src="${SPRITE(n)}" alt=""><h2 id="sheetTitle"><small>#${pad(n)} · Gen ${ROMAN[genOf(n)]}</small>${esc(SPECIES[n-1][0])}</h2>${closeBtn}</div>`;
+
+async function openSlot(n){ pushSheet(); const e=entries.get(n); e?showFilled(n,e):showSearch(n); }
+
+async function showFilled(n,e){
+  let photo=""; try{const b=await get("photos",n); if(b){const u=URL.createObjectURL(b);urls.push(u);photo=u;}}catch(_){}
+  openSheet(head(n)+`<div class="sheet-body">
+    <div class="filled">
+      <figure><div class="label">Card</div>${e.img?`<img src="${esc(e.img)}" alt="${esc(e.cardName)} card">`:`<div class="noimg">No database image</div>`}</figure>
+      <figure><div class="label">My copy</div>${photo?`<img src="${photo}" alt="Your photo of the card">`:`<div class="noimg">No photo yet</div>`}</figure>
+    </div>
+    <dl class="facts">
+      <dt>Card</dt><dd>${esc(e.cardName)}</dd>
+      <dt>Set</dt><dd>${esc(e.set)}${e.series?` <span class="note">(${esc(e.series)})</span>`:""}</dd>
+      <dt>Number</dt><dd>${esc(e.number)}</dd>
+      ${e.rarity?`<dt>Rarity</dt><dd>${esc(e.rarity)}</dd>`:""}
+      <dt>Price paid</dt><dd>${money(e.price)}</dd>
+      <dt>Added</dt><dd>${new Date(e.added).toLocaleDateString()}</dd>
+      ${e.notes?`<dt>Notes</dt><dd>${esc(e.notes)}</dd>`:""}
+    </dl>
+    <div class="row"><button class="btn" data-act="edit">Edit details</button><button class="btn" data-act="replace">Replace card</button></div>
+    <div id="rm"><button class="btn danger" data-act="remove" style="width:100%">Remove from slot</button></div>
+  </div>`);
+  $("#sheet").onclick=async ev=>{const a=ev.target.closest("[data-act]");if(!a)return;
+    if(a.dataset.act==="close") closeSheet();
+    if(a.dataset.act==="edit") showForm(n,e,true,!e.id);
+    if(a.dataset.act==="replace") showSearch(n);
+    if(a.dataset.act==="remove") $("#rm").innerHTML=`<div class="confirm"><p>Empty slot #${n}? The card and your photo are removed.</p><button class="btn" data-act="keep">Keep</button><button class="btn primary" data-act="yesrm">Remove</button></div>`;
+    if(a.dataset.act==="keep") showFilled(n,e);
+    if(a.dataset.act==="yesrm"){ await del("entries",n); await del("photos",n); entries.delete(n); renderGens(); render(); closeSheet(); toast(`#${n} emptied`); }
+  };
+}
+
+/* card search: pokemontcg.io, falls back to TCGdex */
+const cardCache=new Map();
+async function searchCards(n){
+  if(cardCache.has(n)) return cardCache.get(n);
+  let out=[];
+  try{
+    const r=await fetch(`https://api.pokemontcg.io/v2/cards?q=nationalPokedexNumbers:${n}&orderBy=-set.releaseDate&pageSize=250&select=id,name,number,rarity,set,images`);
+    if(!r.ok) throw 0; const j=await r.json();
+    out=j.data.map(c=>({id:c.id,cardName:c.name,number:`${c.number}/${c.set.printedTotal??"?"}`,set:c.set.name,series:c.set.series,rarity:c.rarity||"",released:c.set.releaseDate||"",img:c.images?.small||"",imgLarge:c.images?.large||"",src:"pokemontcg"}));
+  }catch(_){
+    const r=await fetch(`https://api.tcgdex.net/v2/en/cards?dexId=eq:${n}`);
+    if(!r.ok) throw new Error("search failed"); const j=await r.json();
+    out=j.map(c=>{const setId=c.id.slice(0,c.id.lastIndexOf("-"));return {id:c.id,cardName:c.name,number:c.localId,set:setId,series:"",rarity:"",released:"",img:c.image?c.image+"/low.webp":"",imgLarge:c.image?c.image+"/high.webp":"",src:"tcgdex"};}).reverse();
+  }
+  cardCache.set(n,out); return out;
+}
+async function showSearch(n){
+  openSheet(head(n)+`<div class="sheet-body">
+    <div class="field"><label class="label" for="cf">Find your card</label><input id="cf" type="search" placeholder="Filter by set, number or rarity"></div>
+    <p class="status" id="st">Looking up ${esc(SPECIES[n-1][0])} cards…</p>
+    <div class="results" id="res"></div>
+    <button class="btn" data-act="manual">Can't find it? Enter it by hand</button>
+  </div>`);
+  let list=[];
+  const draw=()=>{const f=$("#cf").value.trim().toLowerCase();
+    const shown=list.filter(c=>!f||`${c.set} ${c.series} ${c.number} ${c.rarity} ${c.cardName}`.toLowerCase().includes(f));
+    $("#res").innerHTML=shown.map(c=>`<button class="res" data-id="${esc(c.id)}"><img loading="lazy" src="${esc(c.img)}" alt=""><b>${esc(c.set)}</b><span>${esc(c.cardName)} · ${esc(c.number)}${c.rarity?`<br>${esc(c.rarity)}`:""}</span></button>`).join("");
+    $("#st").textContent=list.length?`${shown.length} of ${list.length} cards`:"";};
+  $("#sheet").onclick=ev=>{const a=ev.target.closest("[data-act]");
+    if(a&&a.dataset.act==="close") return closeSheet();
+    if(a&&a.dataset.act==="manual") return showForm(n,entries.get(n)||{},false,true);
+    const r=ev.target.closest(".res"); if(r){const c=list.find(x=>x.id===r.dataset.id); const prev=entries.get(n)||{}; showForm(n,{...c,price:prev.price,notes:prev.notes,added:prev.added},false);} };
+  $("#cf").addEventListener("input",draw);
+  try{ list=await searchCards(n); if(!list.length) $("#st").textContent="No cards found in the database. Enter it by hand below."; draw(); }
+  catch(_){ $("#st").textContent="Couldn't reach the card database. Check your connection, or enter the card by hand."; }
+}
+
+async function shrink(file){
+  const bmp=await createImageBitmap(file).catch(()=>null); if(!bmp) return file;
+  const max=1400, k=Math.min(1,max/Math.max(bmp.width,bmp.height));
+  const c=document.createElement("canvas"); c.width=Math.round(bmp.width*k); c.height=Math.round(bmp.height*k);
+  c.getContext("2d").drawImage(bmp,0,0,c.width,c.height);
+  return new Promise(r=>c.toBlob(b=>r(b||file),"image/jpeg",.85));
+}
+async function showForm(n,e,editing,manual){
+  let existing=null; try{existing=await get("photos",n);}catch(_){}
+  let preview=""; if(existing){const u=URL.createObjectURL(existing);urls.push(u);preview=u;}
+  openSheet(head(n)+`<form class="sheet-body" id="f">
+    ${manual?`<div class="field"><label class="label" for="fn">Card name</label><input id="fn" required value="${esc(e.cardName||SPECIES[n-1][0])}"></div>
+    <div class="two"><div class="field"><label class="label" for="fs">Set</label><input id="fs" required value="${esc(e.set||"")}"></div>
+    <div class="field"><label class="label" for="fnum">Number</label><input id="fnum" required placeholder="e.g. 58/102" value="${esc(e.number||"")}"></div></div>`
+    :`<div class="filled"><figure>${e.img?`<img src="${esc(e.img)}" alt="">`:`<div class="noimg">No image</div>`}</figure>
+      <dl class="facts" style="align-content:start"><dt>Set</dt><dd>${esc(e.set)}</dd><dt>No.</dt><dd>${esc(e.number)}</dd>${e.rarity?`<dt>Rarity</dt><dd>${esc(e.rarity)}</dd>`:""}</dl></div>`}
+    <div class="field"><label class="label" for="fp">Price paid (${esc(settings.currency)})</label><input id="fp" type="number" inputmode="decimal" step="0.01" min="0" value="${e.price??""}"></div>
+    <div class="field"><span class="label">Photo of my card</span>
+      <div class="row"><label class="btn" style="text-align:center">Take photo<input id="fcam" type="file" accept="image/*" capture="environment" hidden></label>
+      <label class="btn" style="text-align:center">From gallery<input id="fgal" type="file" accept="image/*" hidden></label></div>
+      <img id="pv" src="${preview}" alt="Photo preview" style="max-height:240px;object-fit:contain;border-radius:10px" ${preview?"":"hidden"}>
+    </div>
+    <div class="field"><label class="label" for="fnotes">Notes</label><textarea id="fnotes" rows="2" placeholder="Condition, where you bought it…">${esc(e.notes||"")}</textarea></div>
+    <div class="row"><button type="button" class="btn" data-act="back">Back</button><button type="submit" class="btn primary">Save to slot</button></div>
+  </form>`);
+  let newPhoto=null;
+  const pick=async ev=>{const f=ev.target.files[0];if(!f)return;newPhoto=await shrink(f);const u=URL.createObjectURL(newPhoto);urls.push(u);$("#pv").src=u;$("#pv").hidden=false;};
+  $("#fcam").addEventListener("change",pick); $("#fgal").addEventListener("change",pick);
+  $("#sheet").onclick=ev=>{const a=ev.target.closest("[data-act]");if(!a)return;
+    if(a.dataset.act==="close") closeSheet();
+    if(a.dataset.act==="back") (editing&&entries.get(n))?showFilled(n,entries.get(n)):showSearch(n);};
+  $("#f").addEventListener("submit",async ev=>{ev.preventDefault();
+    const p=$("#fp").value;
+    const rec={dex:n,id:e.id||null,cardName:manual?$("#fn").value.trim():e.cardName,set:manual?$("#fs").value.trim():e.set,
+      number:manual?$("#fnum").value.trim():e.number,series:manual?"":e.series||"",rarity:manual?"":e.rarity||"",
+      img:manual?"":e.img||"",price:p===""?null:Math.round(parseFloat(p)*100)/100,notes:$("#fnotes").value.trim(),
+      added:e.added||Date.now()};
+    try{ await put("entries",rec); if(newPhoto) await put("photos",newPhoto,n); }catch(_){ return toast("Couldn't save. Is your phone storage full?"); }
+    entries.set(n,rec); renderGens(); render(); showFilled(n,rec); toast(`Saved #${n} ${SPECIES[n-1][0]}`);
+  });
+}
+
+/* ---------- stats & backup ---------- */
+$("#statsBtn").addEventListener("click",()=>{pushSheet();showStats();});
+function showStats(){
+  const all=[...entries.values()]; const priced=all.filter(e=>e.price!=null);
+  const spent=priced.reduce((s,e)=>s+e.price,0);
+  const top=[...priced].sort((a,b)=>b.price-a.price)[0];
+  const counts=Array(9).fill(0); all.forEach(e=>counts[genOf(e.dex)]++);
+  const rows=ROMAN.map((r,i)=>{const t=(i<8?GEN_START[i+1]:1026)-GEN_START[i];return `<div class="genrow"><span>Gen ${r}</span><div class="progress"><i style="width:${counts[i]/t*100}%"></i></div><span>${counts[i]}/${t} · ${Math.round(counts[i]/t*100)}%</span></div>`;}).join("");
+  const lb=settings.lastBackup?new Date(settings.lastBackup).toLocaleDateString():"never";
+  openSheet(`<div class="sheet-head"><h2 id="sheetTitle"><small>COLLECTION</small>Stats &amp; backup</h2>${closeBtn}</div><div class="sheet-body">
+    <div class="stat-tiles">
+      <div class="tile"><b>${(entries.size/1025*100).toFixed(1)}%</b><span>${entries.size} of 1025</span></div>
+      <div class="tile"><b>${money(spent)}</b><span>total spent</span></div>
+      <div class="tile"><b>${priced.length?money(spent/priced.length):"—"}</b><span>average per card</span></div>
+    </div>
+    ${top?`<p class="note">Most expensive: #${top.dex} ${esc(SPECIES[top.dex-1][0])}, ${esc(top.set)} ${esc(top.number)} at ${money(top.price)}.</p>`:""}
+    <div class="label">By generation</div>${rows}
+    <div class="label">Backup</div>
+    <p class="note">Everything is stored only on this phone. Last backup: ${lb}. A backup file includes your photos.</p>
+    <div class="row"><button class="btn primary" data-act="export">Save backup file</button><button class="btn" data-act="import">Restore from file</button></div>
+    <div id="imp"></div>
+    <div class="field"><label class="label" for="cur">Currency label</label><input id="cur" value="${esc(settings.currency)}" maxlength="5"></div>
+  </div>`);
+  $("#cur").addEventListener("change",async ev=>{settings.currency=ev.target.value.trim()||"RM";await put("meta",settings,"settings");render();});
+  $("#sheet").onclick=async ev=>{const a=ev.target.closest("[data-act]");if(!a)return;
+    if(a.dataset.act==="close") closeSheet();
+    if(a.dataset.act==="export") exportBackup();
+    if(a.dataset.act==="import") $("#restoreFile").click();
+    if(a.dataset.act==="cancelimp") $("#imp").innerHTML="";
+    if(a.dataset.act==="doimp") doRestore();
+  };
+}
+const toB64=b=>new Promise(r=>{const fr=new FileReader();fr.onload=()=>r(fr.result);fr.readAsDataURL(b);});
+async function exportBackup(){
+  toast("Preparing backup…");
+  const photos=await getAllKV("photos"); const p={};
+  for(const k in photos) p[k]=await toB64(photos[k]);
+  const data={app:"dex-binder",version:1,exported:new Date().toISOString(),settings,entries:[...entries.values()],photos:p};
+  const blob=new Blob([JSON.stringify(data)],{type:"application/json"});
+  const name=`dex-binder-backup-${new Date().toISOString().slice(0,10)}.json`;
+  const file=new File([blob],name,{type:"application/json"});
+  try{
+    if(navigator.canShare&&navigator.canShare({files:[file]})) await navigator.share({files:[file],title:"Dex Binder backup"});
+    else { const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},2000); }
+    settings.lastBackup=Date.now(); await put("meta",settings,"settings"); toast("Backup saved");
+  }catch(e){ if(e&&e.name!=="AbortError") toast("Backup was not saved."); }
+}
+let pending=null;
+$("#restoreFile").addEventListener("change",async ev=>{const f=ev.target.files[0];ev.target.value="";if(!f)return;
+  try{ const d=JSON.parse(await f.text()); if(d.app!=="dex-binder"||!Array.isArray(d.entries)) throw 0; pending=d;
+    $("#imp").innerHTML=`<div class="confirm"><p>Replace everything on this phone with the backup from ${new Date(d.exported).toLocaleDateString()} (${d.entries.length} cards)?</p><button class="btn" data-act="cancelimp">Cancel</button><button class="btn primary" data-act="doimp">Restore</button></div>`;
+  }catch(_){ toast("That file isn't a Dex Binder backup."); }});
+async function doRestore(){ const d=pending; if(!d) return;
+  try{
+    await tx("entries","readwrite",s=>s.clear()); await tx("photos","readwrite",s=>s.clear());
+    for(const e of d.entries) await put("entries",e);
+    for(const k in d.photos){ const b=await (await fetch(d.photos[k])).blob(); await put("photos",b,+k); }
+    if(d.settings) { settings={...settings,...d.settings}; await put("meta",settings,"settings"); }
+    entries=new Map(d.entries.map(e=>[e.dex,e])); renderGens(); render(); showStats(); toast(`Restored ${d.entries.length} cards`);
+  }catch(_){ toast("Restore failed partway. Try the file again."); }
+}
+
+let tt; function toast(m){let t=$(".toast");if(!t){t=document.createElement("div");t.className="toast";t.setAttribute("role","status");document.body.appendChild(t);}t.textContent=m;t.hidden=false;clearTimeout(tt);tt=setTimeout(()=>t.hidden=true,2600);}
+
+if("serviceWorker" in navigator) window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
+load();
+</script>
+</body>
+</html>
