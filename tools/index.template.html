@@ -99,14 +99,17 @@ main{padding-block:12px 40px}
 .filled figure{margin:0;display:flex;flex-direction:column;gap:6px}
 .filled img{width:100%;aspect-ratio:63/88;object-fit:cover;border-radius:10px;background:var(--sunk)}
 .noimg{aspect-ratio:63/88;border-radius:10px;border:1px dashed var(--line);display:grid;place-items:center;color:var(--muted);font-size:12px;text-align:center;padding:10px}
-dl.facts{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:0}
+dl.facts{display:grid;grid-template-columns:6.5em minmax(0,1fr);gap:6px 14px;margin:0}
 dl.facts dt{color:var(--muted);font-size:13px}
 dl.facts dd{margin:0;font-weight:500;font-variant-numeric:tabular-nums;min-width:0;overflow-wrap:anywhere}
 .confirm{border:1px solid var(--accent);border-radius:10px;padding:10px 12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .confirm p{margin:0;flex:1 1 160px}
 
 /* stats */
-.stat-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.stat-tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.up,.tile b .up{color:var(--owned)}.down,.tile b .down{color:var(--accent)}
+.tile b span{font-size:inherit}
+.res .mk{font-family:var(--f-mono);font-size:12px;color:var(--fg)}
 .tile{background:var(--bg);border-radius:10px;padding:10px}
 .tile b{display:block;font-family:var(--f-display);font-size:22px;font-variant-numeric:tabular-nums;line-height:1.1;overflow-wrap:anywhere}
 .tile span{font-size:12px;color:var(--muted)}
@@ -177,8 +180,56 @@ async function load(){
        const s=await get("meta","settings"); if(s) settings={...settings,...s}; }catch(e){ toast("Couldn't open storage on this device."); }
   if(navigator.storage&&navigator.storage.persist){ try{ await navigator.storage.persist(); }catch(e){} }
   renderGens(); render();
+  if(navigator.onLine && Date.now()-(settings.pricesUpdated||0) > 20*3600*1000) refreshPrices(false);
 }
-const money=v=>v==null||v===""?"—":`${settings.currency} ${Number(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+const fmt=v=>Number(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+const money=v=>v==null||v===""?"—":`RM ${fmt(v)}`;
+const usd=v=>v==null?"—":`US$ ${fmt(v)}`;
+
+/* ---------- market value (TCGplayer USD → RM) ---------- */
+const VARIANT_NAMES={normal:"Normal",holofoil:"Holo",reverseHolofoil:"Reverse holo","1stEditionHolofoil":"1st Edition holo","1stEditionNormal":"1st Edition",unlimitedHolofoil:"Unlimited holo"};
+const vName=k=>VARIANT_NAMES[k]||k;
+const usdOf=(pr,v)=>{const p=pr&&v&&pr[v];return p?(p.market??p.mid??null):null;};
+function variants(pr){return pr?Object.keys(pr).filter(k=>usdOf(pr,k)!=null):[];}
+function pickVariant(pr,pref){const ks=variants(pr);if(!ks.length)return null;if(pref&&ks.includes(pref))return pref;for(const k of ["holofoil","normal","reverseHolofoil","1stEditionHolofoil"]) if(ks.includes(k)) return k;return ks[0];}
+const rate=()=>settings.rateOverride||settings.usdMyr||null;
+const toRM=u=>u!=null&&rate()?Math.round(u*rate()*100)/100:null;
+const marketOf=e=>toRM(e.usd);
+const valueOf=e=>e.myValue!=null?e.myValue:marketOf(e);
+function gainHtml(paid,val){
+  if(paid==null||val==null) return "—";
+  const d=Math.round((val-paid)*100)/100, sign=d>0?"+":d<0?"−":"", cls=d>0?"up":d<0?"down":"";
+  const pct=paid>0?` (${sign}${Math.abs(d/paid*100).toFixed(1)}%)`:"";
+  return `<span class="${cls}">${sign}RM ${fmt(Math.abs(d))}${pct}</span>`;
+}
+async function refreshRate(){
+  const save=async v=>{settings.usdMyr=v;settings.rateUpdated=Date.now();await put("meta",settings,"settings");return true;};
+  try{const j=await (await fetch("https://open.er-api.com/v6/latest/USD")).json(); if(j.rates&&j.rates.MYR) return save(j.rates.MYR);}catch(_){}
+  try{const j=await (await fetch("https://api.frankfurter.app/latest?from=USD&to=MYR")).json(); if(j.rates&&j.rates.MYR) return save(j.rates.MYR);}catch(_){}
+  return false;
+}
+let refreshing=false;
+async function refreshPrices(manual){
+  if(refreshing) return; refreshing=true;
+  const rateOk=await refreshRate();
+  const list=[...entries.values()].filter(e=>e.id&&e.src!=="tcgdex");
+  let updated=0, failed=false;
+  for(let i=0;i<list.length;i+=40){
+    const chunk=list.slice(i,i+40);
+    const q="("+chunk.map(e=>`id:"${e.id}"`).join(" OR ")+")";
+    try{
+      const r=await fetch(`https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(q)}&pageSize=250&select=id,tcgplayer`);
+      if(!r.ok) throw 0; const j=await r.json(); const byId=new Map(j.data.map(c=>[c.id,c]));
+      for(const e of chunk){const c=byId.get(e.id); if(!c) continue; const pr=c.tcgplayer?.prices||null;
+        e.prices=pr; e.variant=pickVariant(pr,e.variant); e.usd=usdOf(pr,e.variant); e.priceUpdated=Date.now();
+        await put("entries",e); updated++;}
+    }catch(_){failed=true;}
+  }
+  if(!failed){settings.pricesUpdated=Date.now(); await put("meta",settings,"settings");}
+  refreshing=false;
+  if(manual) toast(failed?"Some prices couldn't be updated. Check your connection and try again.":`Updated ${updated} market price${updated===1?"":"s"}${rateOk?"":" · exchange rate unchanged"}`);
+  if(!$("#sheet").hidden && $("#statsMark")) showStats();
+}
 
 /* ---------- grid ---------- */
 function genOf(n){let g=0;for(let i=0;i<9;i++) if(n>=GEN_START[i]) g=i;return g;}
@@ -233,7 +284,16 @@ async function showFilled(n,e){
       <dt>Set</dt><dd>${esc(e.set)}${e.series?` <span class="note">(${esc(e.series)})</span>`:""}</dd>
       <dt>Number</dt><dd>${esc(e.number)}</dd>
       ${e.rarity?`<dt>Rarity</dt><dd>${esc(e.rarity)}</dd>`:""}
+    </dl>
+    <div class="label">Value</div>
+    <dl class="facts">
       <dt>Price paid</dt><dd>${money(e.price)}</dd>
+      <dt>Market</dt><dd>${marketOf(e)!=null?`${money(marketOf(e))} <span class="note">· ${usd(e.usd)} TCGplayer${e.variant?`, ${esc(vName(e.variant))}`:""}</span>`:`— <span class="note">${e.id?"no TCGplayer price":"enter your own value"}</span>`}</dd>
+      ${e.myValue!=null?`<dt>My value</dt><dd>${money(e.myValue)} <span class="note">· used instead of market</span></dd>`:""}
+      <dt>Gain/loss</dt><dd>${gainHtml(e.price,valueOf(e))}</dd>
+      ${e.priceUpdated?`<dt>Price date</dt><dd>${new Date(e.priceUpdated).toLocaleDateString()}</dd>`:""}
+    </dl>
+    <dl class="facts">
       <dt>Added</dt><dd>${new Date(e.added).toLocaleDateString()}</dd>
       ${e.notes?`<dt>Notes</dt><dd>${esc(e.notes)}</dd>`:""}
     </dl>
@@ -256,9 +316,10 @@ async function searchCards(n){
   if(cardCache.has(n)) return cardCache.get(n);
   let out=[];
   try{
-    const r=await fetch(`https://api.pokemontcg.io/v2/cards?q=nationalPokedexNumbers:${n}&orderBy=-set.releaseDate&pageSize=250&select=id,name,number,rarity,set,images`);
+    const r=await fetch(`https://api.pokemontcg.io/v2/cards?q=nationalPokedexNumbers:${n}&orderBy=-set.releaseDate&pageSize=250&select=id,name,number,rarity,set,images,tcgplayer`);
     if(!r.ok) throw 0; const j=await r.json();
-    out=j.data.map(c=>({id:c.id,cardName:c.name,number:`${c.number}/${c.set.printedTotal??"?"}`,set:c.set.name,series:c.set.series,rarity:c.rarity||"",released:c.set.releaseDate||"",img:c.images?.small||"",imgLarge:c.images?.large||"",src:"pokemontcg"}));
+    out=j.data.map(c=>({id:c.id,cardName:c.name,number:`${c.number}/${c.set.printedTotal??"?"}`,set:c.set.name,series:c.set.series,rarity:c.rarity||"",released:c.set.releaseDate||"",img:c.images?.small||"",imgLarge:c.images?.large||"",src:"pokemontcg",prices:c.tcgplayer?.prices||null,priceUpdated:Date.now()}));
+    if(Date.now()-(settings.rateUpdated||0)>12*3600*1000) await refreshRate();
   }catch(_){
     const r=await fetch(`https://api.tcgdex.net/v2/en/cards?dexId=eq:${n}`);
     if(!r.ok) throw new Error("search failed"); const j=await r.json();
@@ -276,7 +337,7 @@ async function showSearch(n){
   let list=[];
   const draw=()=>{const f=$("#cf").value.trim().toLowerCase();
     const shown=list.filter(c=>!f||`${c.set} ${c.series} ${c.number} ${c.rarity} ${c.cardName}`.toLowerCase().includes(f));
-    $("#res").innerHTML=shown.map(c=>`<button class="res" data-id="${esc(c.id)}"><img loading="lazy" src="${esc(c.img)}" alt=""><b>${esc(c.set)}</b><span>${esc(c.cardName)} · ${esc(c.number)}${c.rarity?`<br>${esc(c.rarity)}`:""}</span></button>`).join("");
+    $("#res").innerHTML=shown.map(c=>`<button class="res" data-id="${esc(c.id)}"><img loading="lazy" src="${esc(c.img)}" alt=""><b>${esc(c.set)}</b><span>${esc(c.cardName)} · ${esc(c.number)}${c.rarity?`<br>${esc(c.rarity)}`:""}</span>${(()=>{const u=usdOf(c.prices,pickVariant(c.prices));return u!=null?`<span class="mk">${toRM(u)!=null?money(toRM(u)):usd(u)}</span>`:"";})()}</button>`).join("");
     $("#st").textContent=list.length?`${shown.length} of ${list.length} cards`:"";};
   $("#sheet").onclick=ev=>{const a=ev.target.closest("[data-act]");
     if(a&&a.dataset.act==="close") return closeSheet();
@@ -303,7 +364,12 @@ async function showForm(n,e,editing,manual){
     <div class="field"><label class="label" for="fnum">Number</label><input id="fnum" required placeholder="e.g. 58/102" value="${esc(e.number||"")}"></div></div>`
     :`<div class="filled"><figure>${e.img?`<img src="${esc(e.img)}" alt="">`:`<div class="noimg">No image</div>`}</figure>
       <dl class="facts" style="align-content:start"><dt>Set</dt><dd>${esc(e.set)}</dd><dt>No.</dt><dd>${esc(e.number)}</dd>${e.rarity?`<dt>Rarity</dt><dd>${esc(e.rarity)}</dd>`:""}</dl></div>`}
-    <div class="field"><label class="label" for="fp">Price paid (${esc(settings.currency)})</label><input id="fp" type="number" inputmode="decimal" step="0.01" min="0" value="${e.price??""}"></div>
+    ${variants(e.prices).length?`<div class="field"><label class="label" for="fv">Printing (sets the market price)</label><select id="fv">${variants(e.prices).map(k=>`<option value="${esc(k)}" ${k===pickVariant(e.prices,e.variant)?"selected":""}>${esc(vName(k))} · ${usd(usdOf(e.prices,k))}${toRM(usdOf(e.prices,k))!=null?` ≈ ${money(toRM(usdOf(e.prices,k)))}`:""}</option>`).join("")}</select></div>`:""}
+    <div class="two">
+      <div class="field"><label class="label" for="fp">Price paid (RM)</label><input id="fp" type="number" inputmode="decimal" step="0.01" min="0" value="${e.price??""}"></div>
+      <div class="field"><label class="label" for="fmv">My value (RM)</label><input id="fmv" type="number" inputmode="decimal" step="0.01" min="0" placeholder="${variants(e.prices).length?"Use market":"Optional"}" value="${e.myValue??""}"></div>
+    </div>
+    <p class="note">Leave "My value" blank to use the TCGplayer market price. Fill it in for graded cards or local prices.</p>
     <div class="field"><span class="label">Photo of my card</span>
       <div class="row"><label class="btn" style="text-align:center">Take photo<input id="fcam" type="file" accept="image/*" capture="environment" hidden></label>
       <label class="btn" style="text-align:center">From gallery<input id="fgal" type="file" accept="image/*" hidden></label></div>
@@ -323,7 +389,9 @@ async function showForm(n,e,editing,manual){
     const rec={dex:n,id:e.id||null,cardName:manual?$("#fn").value.trim():e.cardName,set:manual?$("#fs").value.trim():e.set,
       number:manual?$("#fnum").value.trim():e.number,series:manual?"":e.series||"",rarity:manual?"":e.rarity||"",
       img:manual?"":e.img||"",price:p===""?null:Math.round(parseFloat(p)*100)/100,notes:$("#fnotes").value.trim(),
-      added:e.added||Date.now()};
+      added:e.added||Date.now(),src:manual?"manual":(e.src||"pokemontcg")};
+    const mv=$("#fmv").value; rec.myValue=mv===""?null:Math.round(parseFloat(mv)*100)/100;
+    if(!manual&&e.prices){ rec.prices=e.prices; rec.variant=$("#fv")?$("#fv").value:pickVariant(e.prices,e.variant); rec.usd=usdOf(e.prices,rec.variant); rec.priceUpdated=e.priceUpdated||Date.now(); }
     try{ await put("entries",rec); if(newPhoto) await put("photos",newPhoto,n); }catch(_){ return toast("Couldn't save. Is your phone storage full?"); }
     entries.set(n,rec); renderGens(); render(); showFilled(n,rec); toast(`Saved #${n} ${SPECIES[n-1][0]}`);
   });
@@ -332,29 +400,39 @@ async function showForm(n,e,editing,manual){
 /* ---------- stats & backup ---------- */
 $("#statsBtn").addEventListener("click",()=>{pushSheet();showStats();});
 function showStats(){
-  const all=[...entries.values()]; const priced=all.filter(e=>e.price!=null);
-  const spent=priced.reduce((s,e)=>s+e.price,0);
-  const top=[...priced].sort((a,b)=>b.price-a.price)[0];
+  const all=[...entries.values()];
+  const paidList=all.filter(e=>e.price!=null), valued=all.filter(e=>valueOf(e)!=null), both=all.filter(e=>e.price!=null&&valueOf(e)!=null);
+  const sum=(l,f)=>Math.round(l.reduce((s,e)=>s+f(e),0)*100)/100;
+  const spent=sum(paidList,e=>e.price), worth=sum(valued,valueOf);
+  const bPaid=sum(both,e=>e.price), bVal=sum(both,valueOf);
+  const top=[...valued].sort((a,b)=>valueOf(b)-valueOf(a))[0];
+  const noVal=all.length-valued.length;
   const counts=Array(9).fill(0); all.forEach(e=>counts[genOf(e.dex)]++);
   const rows=ROMAN.map((r,i)=>{const t=(i<8?GEN_START[i+1]:1026)-GEN_START[i];return `<div class="genrow"><span>Gen ${r}</span><div class="progress"><i style="width:${counts[i]/t*100}%"></i></div><span>${counts[i]}/${t} · ${Math.round(counts[i]/t*100)}%</span></div>`;}).join("");
   const lb=settings.lastBackup?new Date(settings.lastBackup).toLocaleDateString():"never";
-  openSheet(`<div class="sheet-head"><h2 id="sheetTitle"><small>COLLECTION</small>Stats &amp; backup</h2>${closeBtn}</div><div class="sheet-body">
+  const pu=settings.pricesUpdated?new Date(settings.pricesUpdated).toLocaleString():"not yet";
+  openSheet(`<div class="sheet-head" id="statsMark"><h2 id="sheetTitle"><small>COLLECTION</small>Stats &amp; backup</h2>${closeBtn}</div><div class="sheet-body">
     <div class="stat-tiles">
-      <div class="tile"><b>${(entries.size/1025*100).toFixed(1)}%</b><span>${entries.size} of 1025</span></div>
-      <div class="tile"><b>${money(spent)}</b><span>total spent</span></div>
-      <div class="tile"><b>${priced.length?money(spent/priced.length):"—"}</b><span>average per card</span></div>
+      <div class="tile"><b>${(entries.size/1025*100).toFixed(1)}%</b><span>${entries.size} of 1025 filled</span></div>
+      <div class="tile"><b>${money(spent)}</b><span>total paid</span></div>
+      <div class="tile"><b>${money(worth)}</b><span>National Dex value</span></div>
+      <div class="tile"><b>${both.length?gainHtml(bPaid,bVal):"—"}</b><span>gain/loss</span></div>
     </div>
-    ${top?`<p class="note">Most expensive: #${top.dex} ${esc(SPECIES[top.dex-1][0])}, ${esc(top.set)} ${esc(top.number)} at ${money(top.price)}.</p>`:""}
+    <p class="note">${both.length?`Gain/loss compares the ${both.length} card${both.length===1?" that has":"s that have"} both a price paid and a value. `:""}${noVal?`${noVal} card${noVal===1?" has":"s have"} no value yet; add "My value" to include ${noVal===1?"it":"them"}. `:""}${top?`Most valuable: #${top.dex} ${esc(SPECIES[top.dex-1][0])}, ${esc(top.set)} ${esc(top.number)} at ${money(valueOf(top))}.`:""}</p>
+    <div class="label">Market prices</div>
+    <p class="note">TCGplayer market prices in USD, converted at 1 USD = RM ${rate()?rate().toFixed(4):"—"}${settings.rateOverride?" (your rate)":settings.rateUpdated?` (live, ${new Date(settings.rateUpdated).toLocaleDateString()})`:""}. Last updated: ${pu}. Prices refresh by themselves once a day when you open the app.</p>
+    <div class="row"><button class="btn" data-act="refresh">${refreshing?"Updating…":"Update prices now"}</button></div>
+    <div class="field"><label class="label" for="rto">Fixed USD→RM rate</label><input id="rto" type="number" inputmode="decimal" step="0.0001" min="0" placeholder="Blank = live rate" value="${settings.rateOverride??""}"></div>
     <div class="label">By generation</div>${rows}
     <div class="label">Backup</div>
     <p class="note">Everything is stored only on this phone. Last backup: ${lb}. A backup file includes your photos.</p>
     <div class="row"><button class="btn primary" data-act="export">Save backup file</button><button class="btn" data-act="import">Restore from file</button></div>
     <div id="imp"></div>
-    <div class="field"><label class="label" for="cur">Currency label</label><input id="cur" value="${esc(settings.currency)}" maxlength="5"></div>
   </div>`);
-  $("#cur").addEventListener("change",async ev=>{settings.currency=ev.target.value.trim()||"RM";await put("meta",settings,"settings");render();});
+  $("#rto").addEventListener("change",async ev=>{const v=ev.target.value;settings.rateOverride=v===""?null:parseFloat(v);await put("meta",settings,"settings");showStats();});
   $("#sheet").onclick=async ev=>{const a=ev.target.closest("[data-act]");if(!a)return;
     if(a.dataset.act==="close") closeSheet();
+    if(a.dataset.act==="refresh"&&!refreshing){a.textContent="Updating…";refreshPrices(true);}
     if(a.dataset.act==="export") exportBackup();
     if(a.dataset.act==="import") $("#restoreFile").click();
     if(a.dataset.act==="cancelimp") $("#imp").innerHTML="";
