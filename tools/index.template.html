@@ -338,7 +338,9 @@ let entries=new Map(); let settings={currency:"RM",lastBackup:null};
 let filter="all", gen=0, query="", rfilter="";
 let binders=new Map(), items=new Map(), view="shelf";
 const DEMO_TAG="";
-const BCOLORS=[["Gold","#b8860b"],["Crimson","#b3263a"],["Cobalt","#2856c9"],["Emerald","#18865a"],["Violet","#6b3fc7"],["Teal","#11808a"],["Graphite","#3d4350"],["Rose","#c2477d"]];
+const BCOLORS=[["Gold","#b8860b"],["Crimson","#b3263a"],["Cobalt","#2856c9"],["Emerald","#18865a"],["Violet","#6b3fc7"],["Teal","#11808a"],["Graphite","#3d4350"],["Rose","#c2477d"],["Orange","#d4631c"],["Coral","#e0604e"],["Sky","#2b8fd6"],["Navy","#1f3a73"],["Forest","#2f6b2a"],["Plum","#7d2f6b"],["Bronze","#8a5a2b"],["Silver","#8a929e"]];
+const DEX_COLOR=()=>settings.dexColor||BCOLORS[0][1];
+const swatchHTML=col=>`<fieldset class="field" style="border:0;padding:0;margin:0"><legend class="label" style="margin-bottom:8px">Cover colour</legend><div class="swatches">${BCOLORS.map(([n,c])=>`<label style="background:${c}" title="${n}"><input type="radio" name="bcol" value="${c}" aria-label="${n}" ${c===col?"checked":""}><span></span></label>`).join("")}</div></fieldset>`;
 const newId=p=>p+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 const itemsIn=id=>[...items.values()].filter(i=>i.binder===id).sort((a,b)=>a.added-b.added);
 const curBinder=()=>view.startsWith("b:")?binders.get(view.slice(2)):null;
@@ -490,7 +492,7 @@ function setView(v,noPush){
   if(changed&&!noPush) history.pushState({view:v},"");
   const b=curBinder(), kind=v==="shelf"?"shelf":v==="dex"?"dex":"binder";
   document.body.dataset.view=kind;
-  $("#backBtn").hidden=kind==="shelf"; $("#editBtn").hidden=kind!=="binder";
+  $("#backBtn").hidden=kind==="shelf"; $("#editBtn").hidden=kind==="shelf"; $("#editBtn").setAttribute("aria-label",kind==="dex"?"Change National Dex colour":"Edit binder");
   $("#title").textContent=kind==="shelf"?"Dex Binder":kind==="dex"?"National Dex":b.name;
   $("#subtitle").textContent=DEMO_TAG+(kind==="shelf"?"MY BINDERS":kind==="dex"?"#0001–1025":"CUSTOM BINDER");
   $("#q").placeholder=kind==="binder"?"Card, set or number":"Name or number";
@@ -531,7 +533,7 @@ function coverStats(list){const t=totals(list);const d=t.both?t.bVal-t.bPaid:nul
   return `${t.worth!=null?`<em>${short(t.worth)}</em>`:""}${d!=null?`<em class="${d>0.5?"up":d<-0.5?"down":""}" style="color:${d>0.5?"#b9f6ca":d<-0.5?"#ffc2b8":"#fff"}">${d>0.5?"+":d<-0.5?"−":""}${short(Math.abs(d))}</em>`:""}`;}
 function renderShelf(){
   const dexList=[...entries.values()].sort((a,b)=>a.added-b.added);
-  let html=`<h2>MY BINDERS</h2><button class="cover" style="--bc:#b8860b" data-open="dex" aria-label="National Dex, ${entries.size} of 1025">${fan(dexList)}<b>National Dex</b><div class="meter" aria-hidden="true"><i style="width:${entries.size/1025*100}%"></i></div><span><em>${entries.size}/1025</em>${coverStats(dexList)}</span></button>`;
+  let html=`<h2>MY BINDERS</h2><button class="cover" style="--bc:${esc(DEX_COLOR())}" data-open="dex" aria-label="National Dex, ${entries.size} of 1025">${fan(dexList)}<b>National Dex</b><div class="meter" aria-hidden="true"><i style="width:${entries.size/1025*100}%"></i></div><span><em>${entries.size}/1025</em>${coverStats(dexList)}</span></button>`;
   [...binders.values()].sort((a,b)=>a.created-b.created).forEach(b=>{const l=itemsIn(b.id);
     html+=`<button class="cover" style="--bc:${esc(b.color)}" data-open="b:${esc(b.id)}" aria-label="${esc(b.name)}, ${l.length} cards">${fan(l)}<b>${esc(b.name)}</b><span><em>${l.length} card${l.length===1?"":"s"}</em>${coverStats(l)}</span></button>`;});
   html+=`<button class="cover add" data-act-new="1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><b>New binder</b></button>`;
@@ -582,7 +584,7 @@ $("#grid").addEventListener("click",e=>{
   if(p.dataset.item){pushSheet();showItem(p.dataset.item);return;}
   openSlot(+p.dataset.n);});
 $("#backBtn").addEventListener("click",()=>{ if(history.state&&history.state.view&&history.state.view!=="shelf") history.back(); else setView("shelf",true); });
-$("#editBtn").addEventListener("click",()=>{pushSheet();editBinder(curBinder());});
+$("#editBtn").addEventListener("click",()=>{pushSheet(); if(view==="dex") editDexColor(); else editBinder(curBinder());});
 
 /* ---------- sheet ---------- */
 let urls=[];
@@ -841,13 +843,22 @@ function showScan(blob){
 }
 
 /* ---------- custom binders ---------- */
+function editDexColor(){
+  openSheet(`<div class="sheet-head"><h2 id="sheetTitle"><small>EDIT</small>National Dex</h2>${closeBtn}</div>
+  <form class="sheet-body" id="bf">${swatchHTML(DEX_COLOR())}<button class="btn primary" type="submit">Save colour</button></form>`);
+  $("#bf").addEventListener("submit",async ev=>{ev.preventDefault();
+    settings.dexColor=(document.querySelector('input[name="bcol"]:checked')||{}).value||BCOLORS[0][1];
+    try{await put("meta",settings,"settings");}catch(_){return toast("Couldn't save the colour.");}
+    closeSheet(); setView(view,true); toast("Colour saved");
+  });
+  $("#sheet").onclick=ev=>{const a=ev.target.closest("[data-act]"); if(a&&a.dataset.act==="close") closeSheet();};
+}
 function editBinder(b){
   const isNew=!b; const col=b?b.color:BCOLORS[(binders.size+1)%BCOLORS.length][1];
   openSheet(`<div class="sheet-head"><h2 id="sheetTitle"><small>${isNew?"NEW":"EDIT"}</small>${isNew?"New binder":"Edit binder"}</h2>${closeBtn}</div>
   <form class="sheet-body" id="bf">
     <div class="field"><label class="label" for="bname">Name</label><input id="bname" required maxlength="40" placeholder="e.g. Charizard collection" value="${esc(b?b.name:"")}"></div>
-    <fieldset class="field" style="border:0;padding:0;margin:0"><legend class="label" style="margin-bottom:8px">Cover colour</legend>
-      <div class="swatches">${BCOLORS.map(([n,c])=>`<label style="background:${c}" title="${n}"><input type="radio" name="bcol" value="${c}" aria-label="${n}" ${c===col?"checked":""}><span></span></label>`).join("")}</div></fieldset>
+    ${swatchHTML(col)}
     <button class="btn primary" type="submit">${isNew?"Create binder":"Save changes"}</button>
     ${isNew?"":`<div id="bdel"><button type="button" class="btn danger" data-act="bdel" style="width:100%">Delete binder</button></div>`}
   </form>`);
