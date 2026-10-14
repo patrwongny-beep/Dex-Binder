@@ -1,5 +1,5 @@
 // Dex Binder service worker: app shell offline, sprites and card images cached as you browse.
-const SHELL = "dexbinder-shell-v4";
+const SHELL = "dexbinder-shell-v5";
 const MEDIA = "dexbinder-media-v1";
 const API = "dexbinder-api-v1";
 const SHELL_FILES = ["./", "index.html", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png"];

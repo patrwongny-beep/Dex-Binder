@@ -128,12 +128,45 @@ main{padding-block:14px 96px}
 .readout{font-family:var(--f-mono);font-size:13px;background:var(--well);border-radius:10px;padding:8px 10px;color:var(--muted);overflow-wrap:anywhere}
 .spin{display:inline-block;width:16px;height:16px;border:2px solid var(--sleeve-edge);border-top-color:var(--gold);border-radius:50%;animation:sp 0.8s linear infinite;vertical-align:-3px;margin-right:6px}
 @keyframes sp{to{transform:rotate(360deg)}}
+/* type colours */
+.pocket{background:color-mix(in srgb,var(--t1,#888) 10%,var(--well));border-color:color-mix(in srgb,var(--t1,#888) 24%,var(--sleeve-edge))}
+.pocket .types{position:absolute;right:7px;bottom:9px;display:flex;gap:3px;z-index:1}
+.pocket .types b{width:8px;height:8px;border-radius:50%;box-shadow:0 0 0 1.5px var(--page)}
+.pocket.owned{background:radial-gradient(120% 85% at 50% 32%,color-mix(in srgb,var(--t1) 30%,#fff) 0%,var(--t1) 52%,color-mix(in srgb,var(--t2) 80%,#000) 118%);border:1.5px solid color-mix(in srgb,var(--t1) 60%,#fff);box-shadow:0 6px 16px color-mix(in srgb,var(--t1) 38%,transparent)}
+.pocket.owned .types{display:none}
+.pocket.owned .no{color:#fff;background:rgb(0 0 0 / .35);border-radius:6px;padding:1px 5px;top:5px;left:5px}
+.pocket.owned .nm{color:#fff;background:linear-gradient(transparent,rgb(0 0 0 / .62) 42%);padding-top:14px}
+.pocket.owned .nm i{display:table;margin-top:3px;padding:1px 6px;border-radius:6px;background:rgb(0 0 0 / .4);color:#f1efe9}
+.pocket.owned .nm i.up{color:#9ff0c2} .pocket.owned .nm i.down{color:#ffb3a7}
+.pocket.owned::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 40%,rgb(255 255 255 / .55),transparent 45%);pointer-events:none}
+.binder .pocket.owned img.sp{filter:drop-shadow(0 6px 6px rgb(0 0 0 / .28));opacity:1}
+.pocket.owned .rb:not(.hi){background:rgb(0 0 0 / .4);color:#fff;border-color:transparent}
+.sheet-head.typed{background:linear-gradient(135deg,color-mix(in srgb,var(--t1) 85%,#fff),var(--t1) 45%,color-mix(in srgb,var(--t2) 80%,#000));color:#fff;border-bottom:0;margin-inline:calc(-1 * max(16px,env(safe-area-inset-left,0px))) calc(-1 * max(16px,env(safe-area-inset-right,0px)));padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px));border-radius:20px 20px 0 0}
+.sheet-head.typed img{width:76px;height:76px;filter:drop-shadow(0 6px 8px rgb(0 0 0 / .3));object-fit:contain}
+.sheet-head.typed h2 small{color:rgb(255 255 255 / .85)}
+.sheet-head.typed .iconbtn{background:rgb(0 0 0 / .25);border-color:transparent;color:#fff}
+.tchips{display:flex;gap:5px;margin-top:6px;font-stretch:100%}
+.tchip{font-family:var(--f-body);font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#fff;padding:2px 8px;border-radius:999px;box-shadow:inset 0 0 0 1px rgb(255 255 255 / .35);text-shadow:0 1px 1px rgb(0 0 0 / .3)}
+/* motion */
+.sheet:not([hidden]){animation:sheetUp .42s cubic-bezier(.2,.9,.25,1.06)}
+.scrim:not([hidden]){animation:fade .25s ease}
+@keyframes sheetUp{from{transform:translateY(100%)}to{transform:none}}
+@keyframes fade{from{opacity:0}}
+.page{animation:rise .45s ease both}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}}
+.pocket.pop{animation:pop .7s cubic-bezier(.2,1.6,.4,1)}
+@keyframes pop{0%{transform:scale(.6) rotate(-6deg)}60%{transform:scale(1.08) rotate(2deg)}100%{transform:none}}
+#fx{position:fixed;inset:0;pointer-events:none;z-index:50;width:100%;height:100%}
+.seg3{display:flex;border:1px solid var(--sleeve-edge);border-radius:12px;overflow:hidden;background:var(--sleeve)}
+.seg3 button{flex:1;border:0;background:none;min-height:44px;font-weight:700;color:var(--muted)}
+.seg3 button[aria-pressed=true]{background:var(--gold);color:var(--on-gold)}
+@media (prefers-reduced-motion:reduce){.sheet,.scrim,.page,.pocket.pop{animation:none!important}}
 .empty{text-align:center;color:var(--muted);padding:40px 0}
 
 /* sheet */
 .scrim{position:fixed;inset:0;background:var(--scrim);z-index:20}
 .sheet{position:fixed;left:0;right:0;bottom:0;z-index:21;background:var(--page);border-radius:20px 20px 0 0;max-height:92vh;max-height:92dvh;overflow-y:auto;padding-bottom:max(20px,env(safe-area-inset-bottom,0px));box-shadow:0 -10px 34px rgb(0 0 0 / .25)}
-@media (min-width:700px){.sheet{left:50%;transform:translateX(-50%);width:640px;bottom:24px;border-radius:20px}}
+@media (min-width:700px){.sheet{left:50%;translate:-50% 0;width:640px;bottom:24px;border-radius:20px}}
 .sheet-head{position:sticky;top:0;background:var(--page);display:flex;align-items:center;gap:12px;padding-block:14px 10px;border-bottom:1px solid var(--sleeve-edge);z-index:1}
 .sheet-head img{width:60px;height:60px;image-rendering:pixelated}
 .sheet-head h2{font-family:var(--f-display);font-weight:800;font-stretch:112%;font-size:22px;margin:0;line-height:1.1;flex:1;min-width:0;text-wrap:balance}
@@ -175,7 +208,7 @@ dl.facts dd{margin:0;font-weight:600;font-variant-numeric:tabular-nums;min-width
 .genrow .bar2 i{display:block;height:100%;background:var(--gold)}
 .genrow span:last-child{text-align:right;color:var(--muted);font-family:var(--f-mono);font-size:12.5px}
 .note{font-size:14px;color:var(--muted);margin:0}
-.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(86px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--felt);padding:11px 16px;border-radius:12px;z-index:40;font-weight:600;max-width:90vw}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(86px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--felt);padding:11px 16px;border-radius:12px;z-index:40;font-weight:600;width:max-content;max-width:calc(100vw - 32px)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -220,6 +253,7 @@ dl.facts dd{margin:0;font-weight:600;font-variant-numeric:tabular-nums;min-width
 
 <button class="fab" id="scanBtn" aria-label="Scan a card"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2"/><rect x="8" y="7" width="8" height="10" rx="1.5"/></svg>Scan card</button>
 <div class="scrim" id="scrim" hidden></div>
+<canvas id="fx" aria-hidden="true"></canvas>
 <section class="sheet wrap" id="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="sheetTitle"></section>
 <input type="file" id="restoreFile" accept="application/json,.json" hidden>
 
@@ -227,6 +261,11 @@ dl.facts dd{margin:0;font-weight:600;font-variant-numeric:tabular-nums;min-width
 const SPECIES = [["Bulbasaur",1],["Ivysaur",1],["Venusaur",1],["Charmander",1],["Charmeleon",1],["Charizard",1],["Squirtle",1],["Wartortle",1],["Blastoise",1],["Caterpie",1],["Metapod",1],["Butterfree",1],["Weedle",1],["Kakuna",1],["Beedrill",1],["Pidgey",1],["Pidgeotto",1],["Pidgeot",1],["Rattata",1],["Raticate",1],["Spearow",1],["Fearow",1],["Ekans",1],["Arbok",1],["Pikachu",1],["Raichu",1],["Sandshrew",1],["Sandslash",1],["Nidoran♀",1],["Nidorina",1],["Nidoqueen",1],["Nidoran♂",1],["Nidorino",1],["Nidoking",1],["Clefairy",1],["Clefable",1],["Vulpix",1],["Ninetales",1],["Jigglypuff",1],["Wigglytuff",1],["Zubat",1],["Golbat",1],["Oddish",1],["Gloom",1],["Vileplume",1],["Paras",1],["Parasect",1],["Venonat",1],["Venomoth",1],["Diglett",1],["Dugtrio",1],["Meowth",1],["Persian",1],["Psyduck",1],["Golduck",1],["Mankey",1],["Primeape",1],["Growlithe",1],["Arcanine",1],["Poliwag",1],["Poliwhirl",1],["Poliwrath",1],["Abra",1],["Kadabra",1],["Alakazam",1],["Machop",1],["Machoke",1],["Machamp",1],["Bellsprout",1],["Weepinbell",1],["Victreebel",1],["Tentacool",1],["Tentacruel",1],["Geodude",1],["Graveler",1],["Golem",1],["Ponyta",1],["Rapidash",1],["Slowpoke",1],["Slowbro",1],["Magnemite",1],["Magneton",1],["Farfetch’d",1],["Doduo",1],["Dodrio",1],["Seel",1],["Dewgong",1],["Grimer",1],["Muk",1],["Shellder",1],["Cloyster",1],["Gastly",1],["Haunter",1],["Gengar",1],["Onix",1],["Drowzee",1],["Hypno",1],["Krabby",1],["Kingler",1],["Voltorb",1],["Electrode",1],["Exeggcute",1],["Exeggutor",1],["Cubone",1],["Marowak",1],["Hitmonlee",1],["Hitmonchan",1],["Lickitung",1],["Koffing",1],["Weezing",1],["Rhyhorn",1],["Rhydon",1],["Chansey",1],["Tangela",1],["Kangaskhan",1],["Horsea",1],["Seadra",1],["Goldeen",1],["Seaking",1],["Staryu",1],["Starmie",1],["Mr. Mime",1],["Scyther",1],["Jynx",1],["Electabuzz",1],["Magmar",1],["Pinsir",1],["Tauros",1],["Magikarp",1],["Gyarados",1],["Lapras",1],["Ditto",1],["Eevee",1],["Vaporeon",1],["Jolteon",1],["Flareon",1],["Porygon",1],["Omanyte",1],["Omastar",1],["Kabuto",1],["Kabutops",1],["Aerodactyl",1],["Snorlax",1],["Articuno",1],["Zapdos",1],["Moltres",1],["Dratini",1],["Dragonair",1],["Dragonite",1],["Mewtwo",1],["Mew",1],["Chikorita",2],["Bayleef",2],["Meganium",2],["Cyndaquil",2],["Quilava",2],["Typhlosion",2],["Totodile",2],["Croconaw",2],["Feraligatr",2],["Sentret",2],["Furret",2],["Hoothoot",2],["Noctowl",2],["Ledyba",2],["Ledian",2],["Spinarak",2],["Ariados",2],["Crobat",2],["Chinchou",2],["Lanturn",2],["Pichu",2],["Cleffa",2],["Igglybuff",2],["Togepi",2],["Togetic",2],["Natu",2],["Xatu",2],["Mareep",2],["Flaaffy",2],["Ampharos",2],["Bellossom",2],["Marill",2],["Azumarill",2],["Sudowoodo",2],["Politoed",2],["Hoppip",2],["Skiploom",2],["Jumpluff",2],["Aipom",2],["Sunkern",2],["Sunflora",2],["Yanma",2],["Wooper",2],["Quagsire",2],["Espeon",2],["Umbreon",2],["Murkrow",2],["Slowking",2],["Misdreavus",2],["Unown",2],["Wobbuffet",2],["Girafarig",2],["Pineco",2],["Forretress",2],["Dunsparce",2],["Gligar",2],["Steelix",2],["Snubbull",2],["Granbull",2],["Qwilfish",2],["Scizor",2],["Shuckle",2],["Heracross",2],["Sneasel",2],["Teddiursa",2],["Ursaring",2],["Slugma",2],["Magcargo",2],["Swinub",2],["Piloswine",2],["Corsola",2],["Remoraid",2],["Octillery",2],["Delibird",2],["Mantine",2],["Skarmory",2],["Houndour",2],["Houndoom",2],["Kingdra",2],["Phanpy",2],["Donphan",2],["Porygon2",2],["Stantler",2],["Smeargle",2],["Tyrogue",2],["Hitmontop",2],["Smoochum",2],["Elekid",2],["Magby",2],["Miltank",2],["Blissey",2],["Raikou",2],["Entei",2],["Suicune",2],["Larvitar",2],["Pupitar",2],["Tyranitar",2],["Lugia",2],["Ho-Oh",2],["Celebi",2],["Treecko",3],["Grovyle",3],["Sceptile",3],["Torchic",3],["Combusken",3],["Blaziken",3],["Mudkip",3],["Marshtomp",3],["Swampert",3],["Poochyena",3],["Mightyena",3],["Zigzagoon",3],["Linoone",3],["Wurmple",3],["Silcoon",3],["Beautifly",3],["Cascoon",3],["Dustox",3],["Lotad",3],["Lombre",3],["Ludicolo",3],["Seedot",3],["Nuzleaf",3],["Shiftry",3],["Taillow",3],["Swellow",3],["Wingull",3],["Pelipper",3],["Ralts",3],["Kirlia",3],["Gardevoir",3],["Surskit",3],["Masquerain",3],["Shroomish",3],["Breloom",3],["Slakoth",3],["Vigoroth",3],["Slaking",3],["Nincada",3],["Ninjask",3],["Shedinja",3],["Whismur",3],["Loudred",3],["Exploud",3],["Makuhita",3],["Hariyama",3],["Azurill",3],["Nosepass",3],["Skitty",3],["Delcatty",3],["Sableye",3],["Mawile",3],["Aron",3],["Lairon",3],["Aggron",3],["Meditite",3],["Medicham",3],["Electrike",3],["Manectric",3],["Plusle",3],["Minun",3],["Volbeat",3],["Illumise",3],["Roselia",3],["Gulpin",3],["Swalot",3],["Carvanha",3],["Sharpedo",3],["Wailmer",3],["Wailord",3],["Numel",3],["Camerupt",3],["Torkoal",3],["Spoink",3],["Grumpig",3],["Spinda",3],["Trapinch",3],["Vibrava",3],["Flygon",3],["Cacnea",3],["Cacturne",3],["Swablu",3],["Altaria",3],["Zangoose",3],["Seviper",3],["Lunatone",3],["Solrock",3],["Barboach",3],["Whiscash",3],["Corphish",3],["Crawdaunt",3],["Baltoy",3],["Claydol",3],["Lileep",3],["Cradily",3],["Anorith",3],["Armaldo",3],["Feebas",3],["Milotic",3],["Castform",3],["Kecleon",3],["Shuppet",3],["Banette",3],["Duskull",3],["Dusclops",3],["Tropius",3],["Chimecho",3],["Absol",3],["Wynaut",3],["Snorunt",3],["Glalie",3],["Spheal",3],["Sealeo",3],["Walrein",3],["Clamperl",3],["Huntail",3],["Gorebyss",3],["Relicanth",3],["Luvdisc",3],["Bagon",3],["Shelgon",3],["Salamence",3],["Beldum",3],["Metang",3],["Metagross",3],["Regirock",3],["Regice",3],["Registeel",3],["Latias",3],["Latios",3],["Kyogre",3],["Groudon",3],["Rayquaza",3],["Jirachi",3],["Deoxys",3],["Turtwig",4],["Grotle",4],["Torterra",4],["Chimchar",4],["Monferno",4],["Infernape",4],["Piplup",4],["Prinplup",4],["Empoleon",4],["Starly",4],["Staravia",4],["Staraptor",4],["Bidoof",4],["Bibarel",4],["Kricketot",4],["Kricketune",4],["Shinx",4],["Luxio",4],["Luxray",4],["Budew",4],["Roserade",4],["Cranidos",4],["Rampardos",4],["Shieldon",4],["Bastiodon",4],["Burmy",4],["Wormadam",4],["Mothim",4],["Combee",4],["Vespiquen",4],["Pachirisu",4],["Buizel",4],["Floatzel",4],["Cherubi",4],["Cherrim",4],["Shellos",4],["Gastrodon",4],["Ambipom",4],["Drifloon",4],["Drifblim",4],["Buneary",4],["Lopunny",4],["Mismagius",4],["Honchkrow",4],["Glameow",4],["Purugly",4],["Chingling",4],["Stunky",4],["Skuntank",4],["Bronzor",4],["Bronzong",4],["Bonsly",4],["Mime Jr.",4],["Happiny",4],["Chatot",4],["Spiritomb",4],["Gible",4],["Gabite",4],["Garchomp",4],["Munchlax",4],["Riolu",4],["Lucario",4],["Hippopotas",4],["Hippowdon",4],["Skorupi",4],["Drapion",4],["Croagunk",4],["Toxicroak",4],["Carnivine",4],["Finneon",4],["Lumineon",4],["Mantyke",4],["Snover",4],["Abomasnow",4],["Weavile",4],["Magnezone",4],["Lickilicky",4],["Rhyperior",4],["Tangrowth",4],["Electivire",4],["Magmortar",4],["Togekiss",4],["Yanmega",4],["Leafeon",4],["Glaceon",4],["Gliscor",4],["Mamoswine",4],["Porygon-Z",4],["Gallade",4],["Probopass",4],["Dusknoir",4],["Froslass",4],["Rotom",4],["Uxie",4],["Mesprit",4],["Azelf",4],["Dialga",4],["Palkia",4],["Heatran",4],["Regigigas",4],["Giratina",4],["Cresselia",4],["Phione",4],["Manaphy",4],["Darkrai",4],["Shaymin",4],["Arceus",4],["Victini",5],["Snivy",5],["Servine",5],["Serperior",5],["Tepig",5],["Pignite",5],["Emboar",5],["Oshawott",5],["Dewott",5],["Samurott",5],["Patrat",5],["Watchog",5],["Lillipup",5],["Herdier",5],["Stoutland",5],["Purrloin",5],["Liepard",5],["Pansage",5],["Simisage",5],["Pansear",5],["Simisear",5],["Panpour",5],["Simipour",5],["Munna",5],["Musharna",5],["Pidove",5],["Tranquill",5],["Unfezant",5],["Blitzle",5],["Zebstrika",5],["Roggenrola",5],["Boldore",5],["Gigalith",5],["Woobat",5],["Swoobat",5],["Drilbur",5],["Excadrill",5],["Audino",5],["Timburr",5],["Gurdurr",5],["Conkeldurr",5],["Tympole",5],["Palpitoad",5],["Seismitoad",5],["Throh",5],["Sawk",5],["Sewaddle",5],["Swadloon",5],["Leavanny",5],["Venipede",5],["Whirlipede",5],["Scolipede",5],["Cottonee",5],["Whimsicott",5],["Petilil",5],["Lilligant",5],["Basculin",5],["Sandile",5],["Krokorok",5],["Krookodile",5],["Darumaka",5],["Darmanitan",5],["Maractus",5],["Dwebble",5],["Crustle",5],["Scraggy",5],["Scrafty",5],["Sigilyph",5],["Yamask",5],["Cofagrigus",5],["Tirtouga",5],["Carracosta",5],["Archen",5],["Archeops",5],["Trubbish",5],["Garbodor",5],["Zorua",5],["Zoroark",5],["Minccino",5],["Cinccino",5],["Gothita",5],["Gothorita",5],["Gothitelle",5],["Solosis",5],["Duosion",5],["Reuniclus",5],["Ducklett",5],["Swanna",5],["Vanillite",5],["Vanillish",5],["Vanilluxe",5],["Deerling",5],["Sawsbuck",5],["Emolga",5],["Karrablast",5],["Escavalier",5],["Foongus",5],["Amoonguss",5],["Frillish",5],["Jellicent",5],["Alomomola",5],["Joltik",5],["Galvantula",5],["Ferroseed",5],["Ferrothorn",5],["Klink",5],["Klang",5],["Klinklang",5],["Tynamo",5],["Eelektrik",5],["Eelektross",5],["Elgyem",5],["Beheeyem",5],["Litwick",5],["Lampent",5],["Chandelure",5],["Axew",5],["Fraxure",5],["Haxorus",5],["Cubchoo",5],["Beartic",5],["Cryogonal",5],["Shelmet",5],["Accelgor",5],["Stunfisk",5],["Mienfoo",5],["Mienshao",5],["Druddigon",5],["Golett",5],["Golurk",5],["Pawniard",5],["Bisharp",5],["Bouffalant",5],["Rufflet",5],["Braviary",5],["Vullaby",5],["Mandibuzz",5],["Heatmor",5],["Durant",5],["Deino",5],["Zweilous",5],["Hydreigon",5],["Larvesta",5],["Volcarona",5],["Cobalion",5],["Terrakion",5],["Virizion",5],["Tornadus",5],["Thundurus",5],["Reshiram",5],["Zekrom",5],["Landorus",5],["Kyurem",5],["Keldeo",5],["Meloetta",5],["Genesect",5],["Chespin",6],["Quilladin",6],["Chesnaught",6],["Fennekin",6],["Braixen",6],["Delphox",6],["Froakie",6],["Frogadier",6],["Greninja",6],["Bunnelby",6],["Diggersby",6],["Fletchling",6],["Fletchinder",6],["Talonflame",6],["Scatterbug",6],["Spewpa",6],["Vivillon",6],["Litleo",6],["Pyroar",6],["Flabébé",6],["Floette",6],["Florges",6],["Skiddo",6],["Gogoat",6],["Pancham",6],["Pangoro",6],["Furfrou",6],["Espurr",6],["Meowstic",6],["Honedge",6],["Doublade",6],["Aegislash",6],["Spritzee",6],["Aromatisse",6],["Swirlix",6],["Slurpuff",6],["Inkay",6],["Malamar",6],["Binacle",6],["Barbaracle",6],["Skrelp",6],["Dragalge",6],["Clauncher",6],["Clawitzer",6],["Helioptile",6],["Heliolisk",6],["Tyrunt",6],["Tyrantrum",6],["Amaura",6],["Aurorus",6],["Sylveon",6],["Hawlucha",6],["Dedenne",6],["Carbink",6],["Goomy",6],["Sliggoo",6],["Goodra",6],["Klefki",6],["Phantump",6],["Trevenant",6],["Pumpkaboo",6],["Gourgeist",6],["Bergmite",6],["Avalugg",6],["Noibat",6],["Noivern",6],["Xerneas",6],["Yveltal",6],["Zygarde",6],["Diancie",6],["Hoopa",6],["Volcanion",6],["Rowlet",7],["Dartrix",7],["Decidueye",7],["Litten",7],["Torracat",7],["Incineroar",7],["Popplio",7],["Brionne",7],["Primarina",7],["Pikipek",7],["Trumbeak",7],["Toucannon",7],["Yungoos",7],["Gumshoos",7],["Grubbin",7],["Charjabug",7],["Vikavolt",7],["Crabrawler",7],["Crabominable",7],["Oricorio",7],["Cutiefly",7],["Ribombee",7],["Rockruff",7],["Lycanroc",7],["Wishiwashi",7],["Mareanie",7],["Toxapex",7],["Mudbray",7],["Mudsdale",7],["Dewpider",7],["Araquanid",7],["Fomantis",7],["Lurantis",7],["Morelull",7],["Shiinotic",7],["Salandit",7],["Salazzle",7],["Stufful",7],["Bewear",7],["Bounsweet",7],["Steenee",7],["Tsareena",7],["Comfey",7],["Oranguru",7],["Passimian",7],["Wimpod",7],["Golisopod",7],["Sandygast",7],["Palossand",7],["Pyukumuku",7],["Type: Null",7],["Silvally",7],["Minior",7],["Komala",7],["Turtonator",7],["Togedemaru",7],["Mimikyu",7],["Bruxish",7],["Drampa",7],["Dhelmise",7],["Jangmo-o",7],["Hakamo-o",7],["Kommo-o",7],["Tapu Koko",7],["Tapu Lele",7],["Tapu Bulu",7],["Tapu Fini",7],["Cosmog",7],["Cosmoem",7],["Solgaleo",7],["Lunala",7],["Nihilego",7],["Buzzwole",7],["Pheromosa",7],["Xurkitree",7],["Celesteela",7],["Kartana",7],["Guzzlord",7],["Necrozma",7],["Magearna",7],["Marshadow",7],["Poipole",7],["Naganadel",7],["Stakataka",7],["Blacephalon",7],["Zeraora",7],["Meltan",7],["Melmetal",7],["Grookey",8],["Thwackey",8],["Rillaboom",8],["Scorbunny",8],["Raboot",8],["Cinderace",8],["Sobble",8],["Drizzile",8],["Inteleon",8],["Skwovet",8],["Greedent",8],["Rookidee",8],["Corvisquire",8],["Corviknight",8],["Blipbug",8],["Dottler",8],["Orbeetle",8],["Nickit",8],["Thievul",8],["Gossifleur",8],["Eldegoss",8],["Wooloo",8],["Dubwool",8],["Chewtle",8],["Drednaw",8],["Yamper",8],["Boltund",8],["Rolycoly",8],["Carkol",8],["Coalossal",8],["Applin",8],["Flapple",8],["Appletun",8],["Silicobra",8],["Sandaconda",8],["Cramorant",8],["Arrokuda",8],["Barraskewda",8],["Toxel",8],["Toxtricity",8],["Sizzlipede",8],["Centiskorch",8],["Clobbopus",8],["Grapploct",8],["Sinistea",8],["Polteageist",8],["Hatenna",8],["Hattrem",8],["Hatterene",8],["Impidimp",8],["Morgrem",8],["Grimmsnarl",8],["Obstagoon",8],["Perrserker",8],["Cursola",8],["Sirfetch’d",8],["Mr. Rime",8],["Runerigus",8],["Milcery",8],["Alcremie",8],["Falinks",8],["Pincurchin",8],["Snom",8],["Frosmoth",8],["Stonjourner",8],["Eiscue",8],["Indeedee",8],["Morpeko",8],["Cufant",8],["Copperajah",8],["Dracozolt",8],["Arctozolt",8],["Dracovish",8],["Arctovish",8],["Duraludon",8],["Dreepy",8],["Drakloak",8],["Dragapult",8],["Zacian",8],["Zamazenta",8],["Eternatus",8],["Kubfu",8],["Urshifu",8],["Zarude",8],["Regieleki",8],["Regidrago",8],["Glastrier",8],["Spectrier",8],["Calyrex",8],["Wyrdeer",8],["Kleavor",8],["Ursaluna",8],["Basculegion",8],["Sneasler",8],["Overqwil",8],["Enamorus",8],["Sprigatito",9],["Floragato",9],["Meowscarada",9],["Fuecoco",9],["Crocalor",9],["Skeledirge",9],["Quaxly",9],["Quaxwell",9],["Quaquaval",9],["Lechonk",9],["Oinkologne",9],["Tarountula",9],["Spidops",9],["Nymble",9],["Lokix",9],["Pawmi",9],["Pawmo",9],["Pawmot",9],["Tandemaus",9],["Maushold",9],["Fidough",9],["Dachsbun",9],["Smoliv",9],["Dolliv",9],["Arboliva",9],["Squawkabilly",9],["Nacli",9],["Naclstack",9],["Garganacl",9],["Charcadet",9],["Armarouge",9],["Ceruledge",9],["Tadbulb",9],["Bellibolt",9],["Wattrel",9],["Kilowattrel",9],["Maschiff",9],["Mabosstiff",9],["Shroodle",9],["Grafaiai",9],["Bramblin",9],["Brambleghast",9],["Toedscool",9],["Toedscruel",9],["Klawf",9],["Capsakid",9],["Scovillain",9],["Rellor",9],["Rabsca",9],["Flittle",9],["Espathra",9],["Tinkatink",9],["Tinkatuff",9],["Tinkaton",9],["Wiglett",9],["Wugtrio",9],["Bombirdier",9],["Finizen",9],["Palafin",9],["Varoom",9],["Revavroom",9],["Cyclizar",9],["Orthworm",9],["Glimmet",9],["Glimmora",9],["Greavard",9],["Houndstone",9],["Flamigo",9],["Cetoddle",9],["Cetitan",9],["Veluza",9],["Dondozo",9],["Tatsugiri",9],["Annihilape",9],["Clodsire",9],["Farigiraf",9],["Dudunsparce",9],["Kingambit",9],["Great Tusk",9],["Scream Tail",9],["Brute Bonnet",9],["Flutter Mane",9],["Slither Wing",9],["Sandy Shocks",9],["Iron Treads",9],["Iron Bundle",9],["Iron Hands",9],["Iron Jugulis",9],["Iron Moth",9],["Iron Thorns",9],["Frigibax",9],["Arctibax",9],["Baxcalibur",9],["Gimmighoul",9],["Gholdengo",9],["Wo-Chien",9],["Chien-Pao",9],["Ting-Lu",9],["Chi-Yu",9],["Roaring Moon",9],["Iron Valiant",9],["Koraidon",9],["Miraidon",9],["Walking Wake",9],["Iron Leaves",9],["Dipplin",9],["Poltchageist",9],["Sinistcha",9],["Okidogi",9],["Munkidori",9],["Fezandipiti",9],["Ogerpon",9],["Archaludon",9],["Hydrapple",9],["Gouging Fire",9],["Raging Bolt",9],["Iron Boulder",9],["Iron Crown",9],["Terapagos",9],["Pecharunt",9]];
 const GEN_START=[1,152,252,387,494,650,722,810,906];
 const ROMAN=["I","II","III","IV","V","VI","VII","VIII","IX"];
+const TYPES="ehehehb-b-bjc-c-c-l-l-ljlhlhlhajajaja-a-ajajh-h-d-d-i-i-h-h-hih-h-hir-r-b-b-ararhjhjehehehlelelhlhi-i-a-a-c-c-g-g-b-b-c-c-cgk-k-k-g-g-g-ehehehchchmimimib-b-ckckdqdqajajajc-cfh-h-c-cfnhnhnhmik-k-c-c-d-d-ekeki-i-g-g-a-h-h-imima-e-a-c-c-c-c-c-ckkrljfkd-b-l-a-c-cjcfa-a-c-d-b-a-mcmcmcmcmja-fjdjbjo-o-ojk-k-e-e-e-b-b-b-c-c-c-a-a-ajajljljlhlhhjcdcdd-r-arr-rjkjkjd-d-d-e-crcrm-c-ejejeja-e-e-ljcicik-p-pjckn-k-k-akl-lqa-ijqir-r-chlqlmlgpfa-a-b-bmfificmc-c-fjcjqjpbpbcoi-i-a-a-a-g-g-fkd-b-a-a-d-b-c-mimimpkjbjkee-e-e-b-bgbgc-cicip-p-a-a-l-l-ljl-lhcececee-epepajajcjcjkrkrkrlclje-ega-a-a-liljlna-a-a-g-g-arm-a-a-pnqrqmqmqmgkgkd-d-d-d-l-l-ehh-h-cpcpc-c-bibib-k-k-a-i-ioioe-epajoja-h-mkmkcicic-cpikikmememlmlc-c-a-a-n-n-n-n-ejk-p-k-f-f-fcfcfcc-c-c-cmc-o-o-ojqkqkqkm-f-q-okokc-i-ojqkk-e-e-eib-bgbgc-c-cqajajaja-acl-l-d-d-d-ehehm-m-mqmql-leljljljd-c-c-e-e-c-cia-njnja-a-n-pja-a-k-hphpqkqkm-kra-ajnpoioioia-g-gqi-i-hlhphghge-c-c-cjefefpfdqa-ime-d-b-rjlje-f-ijfia-kgmqn-fndnk-k-k-qocobqa-nok-c-c-p-e-a-kbe-e-e-b-bgbgc-c-c-a-a-a-a-a-p-p-e-e-b-b-c-c-k-k-ajajajd-d-m-m-m-kjkji-iqa-g-g-g-c-cicig-g-lelelelhlhlherere-e-c-ipipipb-b-e-lmlmpgpgkjn-n-cmcmmjmjh-h-p-p-a-a-k-k-k-k-k-k-cjcjf-f-f-aeaedjl-lqehehcncnc-ldldeqeqq-q-q-d-d-d-k-k-nbnbnbo-o-o-f-f-f-l-l-idg-g-o-ininpqpqa-ajajpjpjb-lqpopopolblbqgmgegj-djobodijofcgaklqe-e-egb-b-bkc-c-cpa-aiajbjbjl-l-ljbabar-r-r-e-e-g-gpa-k-k-qnqnqnr-r-r-r-pkpkmcmchchoc-c-dadamomomfmfr-gjdrmro-o-o-qrnenenenef-f-jojor-pjoimrknbcejejenb-b-bpc-c-crajajaja-a-l-ldldg-gfbjlrlrm-m-c-hchci-i-clcle-e-ererhbhbagage-e-e-r-akg-lclcninic-a-a-mja-bodqnrckaoneo-ogogdrkrercrk-k-kqknmhlglgd-qjeqpok-qrgnh-homqbnd-q-q-e-e-e-b-b-b-c-c-c-a-a-j-j-jql-lklkp-p-e-e-a-a-c-cmd-d-m-mbmbeoeoeoi-i-jcc-c-dhdhblblg-g-n-n-k-k-krprprprpaq-n-g-fkinr-r-g-d-flflm-f-kadpq-q-dodfcocfqoonononr-g-hog-gpped-o-f-n-keaklmiacnghphrje-e-epb-b-bnc-c-cga-a-l-l-l-lpd-dgdga-a-r-r-eaeaeaajm-m-m-b-bkbnd-d-djdjp-p-hahaenenieiem-e-ebl-lkk-k-rqrqrqc-c-jpc-c-qhqhoaq-mhmhn-n-jgf-f-ckc-ocgnhiaka-pqigrkepnrlgdiiqfcgdpjbhmdofofofn-qnpepfpipboprggodocoekeoenenhghkhre-qoeobodomkqka-hn";
+const TYPE_NAMES=["Normal","Fire","Water","Electric","Grass","Ice","Fighting","Poison","Ground","Flying","Psychic","Bug","Rock","Ghost","Dragon","Dark","Steel","Fairy"];
+const TYPE_COL=["#a8a77a","#ee8130","#6390f0","#f2c218","#7ac74c","#68c9c4","#c22e28","#a33ea1","#d9a94a","#a98ff3","#f95587","#a6b91a","#b6a136","#735797","#6f35fc","#705746","#9ea0b8","#d685ad"];
+const typesOf=n=>{const a=TYPES.charCodeAt((n-1)*2)-97,b=TYPES[(n-1)*2+1];return b==="-"?[a]:[a,b.charCodeAt(0)-97];};
+const tvars=n=>{const t=typesOf(n);return `--t1:${TYPE_COL[t[0]]};--t2:${TYPE_COL[t[1]??t[0]]}`;};
 const SPRITE=n=>`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${n}.png`;
 const PIXEL=false;
 const ART=n=>`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${n}.png`;
@@ -251,7 +290,7 @@ let filter="all", gen=0, query="", rfilter="";
 
 async function load(){
   try{ (await getAll("entries")).forEach(e=>entries.set(e.dex,e));
-       const s=await get("meta","settings"); if(s) settings={...settings,...s}; }catch(e){ toast("Couldn't open storage on this device."); }
+       const s=await get("meta","settings"); if(s) settings={...settings,...s}; if(settings.theme) applyTheme(settings.theme); }catch(e){ toast("Couldn't open storage on this device."); }
   if(navigator.storage&&navigator.storage.persist){ try{ await navigator.storage.persist(); }catch(e){} }
   renderGens(); render();
   if(navigator.onLine && Date.now()-(settings.pricesUpdated||0) > 20*3600*1000) refreshPrices(false);
@@ -312,6 +351,48 @@ async function refreshPrices(manual){
   if(!$("#sheet").hidden && $("#statsMark")) showStats();
 }
 
+/* ---------- appearance ---------- */
+function applyTheme(t){const r=document.documentElement; if(t==="light"||t==="dark") r.setAttribute("data-theme",t); else r.removeAttribute("data-theme");
+  try{localStorage.setItem("dexbinder-theme",t||"auto");}catch(_){}
+  const m=document.querySelector('meta[name="theme-color"]'); if(m){const dark=t==="dark"||(t!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches); m.content=dark?"#0d0f13":"#e6e8ec";}}
+try{applyTheme(localStorage.getItem("dexbinder-theme")||"auto");}catch(_){}
+
+/* ---------- celebration ---------- */
+const reduceMotion=()=>matchMedia("(prefers-reduced-motion: reduce)").matches;
+function confetti(colors,big){
+  if(reduceMotion()) return;
+  const c=$("#fx"),g=c.getContext("2d"),dpr=Math.min(2,devicePixelRatio||1);
+  c.width=innerWidth*dpr;c.height=innerHeight*dpr;g.scale(dpr,dpr);
+  const N=big?180:80, ps=[];
+  for(let i=0;i<N;i++){const a=-Math.PI/2+(Math.random()-.5)*(big?2.4:1.6),v=(big?9:7)+Math.random()*6;
+    ps.push({x:innerWidth/2,y:innerHeight*(big?.55:.62),vx:Math.cos(a)*v,vy:Math.sin(a)*v,s:4+Math.random()*5,r:Math.random()*6,vr:(Math.random()-.5)*.3,c:colors[i%colors.length],life:0,shape:Math.random()<.3?1:0});}
+  const t0=performance.now();
+  (function f(t){const dt=Math.min(32,t-(f.l||t))/16;f.l=t;g.clearRect(0,0,innerWidth,innerHeight);let alive=0;
+    for(const p of ps){p.vy+=.28*dt;p.vx*=.99;p.x+=p.vx*dt;p.y+=p.vy*dt;p.r+=p.vr*dt;p.life+=dt;
+      const o=Math.max(0,1-p.life/(big?140:100)); if(o<=0||p.y>innerHeight+20) continue; alive++;
+      g.save();g.globalAlpha=o;g.translate(p.x,p.y);g.rotate(p.r);g.fillStyle=p.c;
+      if(p.shape){g.beginPath();g.arc(0,0,p.s/2,0,7);g.fill();}else g.fillRect(-p.s/2,-p.s/4,p.s,p.s/2);g.restore();}
+    if(alive&&t-t0<5000) requestAnimationFrame(f); else g.clearRect(0,0,innerWidth,innerHeight);})(t0);
+}
+function celebrate(n,wasEmpty){
+  const cols=[...typesOf(n).map(t=>TYPE_COL[t]),"#e2b04e","#f3cf7e","#ffffff"];
+  if(!wasEmpty){confetti(cols,false);return;}
+  const p=Math.floor((n-1)/9), a=p*9+1, z=Math.min(a+8,1025);
+  let pageDone=true; for(let i=a;i<=z;i++) if(!entries.has(i)) pageDone=false;
+  const g=genOf(n), gs=GEN_START[g], ge=(g<8?GEN_START[g+1]:1026)-1; let genDone=true; for(let i=gs;i<=ge;i++) if(!entries.has(i)) {genDone=false;break;}
+  if(entries.size===1025){confetti(TYPE_COL,true);setTimeout(()=>toast("National Dex complete! All 1,025 collected."),300);}
+  else if(genDone){confetti(TYPE_COL,true);setTimeout(()=>toast(`Gen ${ROMAN[g]} complete!`),300);}
+  else if(pageDone){confetti(cols,true);setTimeout(()=>toast(`Binder page ${p+1} complete!`),300);}
+  else confetti(cols,false);
+}
+const shown={};
+function countTo(el,to,fmt){
+  const from=shown[el.id]; shown[el.id]=to;
+  if(from==null||to==null||from===to||reduceMotion()){el.innerHTML=fmt(to);return;}
+  const t0=performance.now(),d=650;
+  (function f(t){const k=Math.min(1,(t-t0)/d),e=1-Math.pow(1-k,3);el.innerHTML=fmt(from+(to-from)*e);if(k<1)requestAnimationFrame(f);})(t0);
+}
+
 /* ---------- grid ---------- */
 function genOf(n){let g=0;for(let i=0;i<9;i++) if(n>=GEN_START[i]) g=i;return g;}
 function renderGens(){
@@ -329,11 +410,12 @@ function totals(){
 }
 function pocket(n){
   const [name]=SPECIES[n-1], e=entries.get(n);
-  if(!e) return `<button class="pocket" data-n="${n}" aria-label="#${n} ${esc(name)}, missing"><span class="no">#${pad(n)}</span><img class="sp${PIXEL?" px":""}" loading="lazy" decoding="async" alt="" width="96" height="96" src="${PIXEL?SPRITE(n):ART(n)}"${PIXEL?"":` onerror="this.onerror=function(){this.style.visibility='hidden'};this.classList.add('px');this.src='${SPRITE(n)}'"`}><span class="nm">${esc(name)}</span></button>`;
+  const tv=tvars(n), dots=typesOf(n).map(t=>`<b style="background:${TYPE_COL[t]}"></b>`).join("");
+  if(!e) return `<button class="pocket" style="${tv}" data-n="${n}" aria-label="#${n} ${esc(name)}, missing"><span class="no">#${pad(n)}</span><img class="sp${PIXEL?" px":""}" loading="lazy" decoding="async" alt="" width="96" height="96" src="${PIXEL?SPRITE(n):ART(n)}"${PIXEL?"":` onerror="this.onerror=function(){this.style.visibility='hidden'};this.classList.add('px');this.src='${SPRITE(n)}'"`}><span class="nm">${esc(name)}</span><span class="types" aria-hidden="true">${dots}</span></button>`;
   const v=valueOf(e), d=v!=null&&e.price!=null?v-e.price:null;
   const sub=v!=null?`<i class="${d>0?"up":d<0?"down":""}">${short(v)}</i>`:`<i>${esc(e.set||"")}</i>`;
   const card=e.img?`<img class="cardimg" loading="lazy" decoding="async" alt="" src="${esc(e.img)}" onerror="this.closest('.pocket').classList.remove('card');this.remove()">`:"";
-  return `<button class="pocket owned${e.img?" card":""}" data-n="${n}" aria-label="#${n} ${esc(name)}, owned${e.rarity?", "+esc(rLabel(e.rarity)):""}">${badge(e.rarity)}<img class="sp${PIXEL?" px":""}" loading="lazy" decoding="async" alt="" width="96" height="96" src="${PIXEL?SPRITE(n):ART(n)}"${PIXEL?"":` onerror="this.onerror=function(){this.style.visibility='hidden'};this.classList.add('px');this.src='${SPRITE(n)}'"`}>${card}<span class="no">#${pad(n)}</span><span class="nm">${esc(name)}${sub}</span></button>`;
+  return `<button class="pocket owned${e.img?" card":""}" style="${tv}" data-n="${n}" aria-label="#${n} ${esc(name)}, owned${e.rarity?", "+esc(rLabel(e.rarity)):""}">${badge(e.rarity)}<img class="sp${PIXEL?" px":""}" loading="lazy" decoding="async" alt="" width="96" height="96" src="${PIXEL?SPRITE(n):ART(n)}"${PIXEL?"":` onerror="this.onerror=function(){this.style.visibility='hidden'};this.classList.add('px');this.src='${SPRITE(n)}'"`}>${card}<span class="no">#${pad(n)}</span><span class="nm">${esc(name)}${sub}</span></button>`;
 }
 function render(){
   const q=query.trim().toLowerCase(), qn=/^\d+$/.test(q)?String(parseInt(q,10)):null;
@@ -352,13 +434,13 @@ function render(){
     html+=`<section class="page" aria-label="Binder page ${p+1}"><div class="page-h"><span>PAGE <b>${p+1}</b> · #${pad(a)}–${pad(z)}</span><span class="${have===z-a+1?"full":""}">${have}/${z-a+1}</span></div><div class="grid">${g}</div></section>`;
   }
   const el=$("#grid"); el.className="binder"+(flat?" flat":""); el.innerHTML=html; $("#none").hidden=shown>0;
-  $("#count").textContent=entries.size;
+  countTo($("#count"),entries.size,v=>String(Math.round(v)));
   $("#ring").style.strokeDashoffset=String(207.35*(1-entries.size/1025));
   $("#ringLabel").setAttribute("aria-label",`${entries.size} of 1025 collected`);
   const t=totals();
-  $("#vPaid").textContent=short(t.paid); $("#vWorth").textContent=short(t.worth);
+  countTo($("#vPaid"),t.paid,short); countTo($("#vWorth"),t.worth,short);
   const d=t.both?t.bVal-t.bPaid:null;
-  $("#vGain").innerHTML=d==null?"—":`<span class="${d>0?"up":d<0?"down":""}">${d>0?"+":d<0?"−":""}${short(Math.abs(d)).replace("RM ","RM ")}</span>`;
+  countTo($("#vGain"),d,v=>v==null?"—":`<span class="${v>0.5?"up":v<-0.5?"down":""}">${v>0.5?"+":v<-0.5?"−":""}${short(Math.abs(v))}</span>`);
 }
 $("#q").addEventListener("input",e=>{query=e.target.value;render();});
 document.querySelectorAll(".seg button").forEach(b=>b.addEventListener("click",()=>{filter=b.dataset.f;document.querySelectorAll(".seg button").forEach(x=>x.setAttribute("aria-pressed",x===b));render();}));
@@ -383,7 +465,7 @@ $("#scrim").addEventListener("click",closeSheet);
 window.addEventListener("popstate",()=>{if(!$("#sheet").hidden){$("#sheet").hidden=true;$("#scrim").hidden=true;document.body.style.overflow="";freeUrls();}});
 function pushSheet(){ if(!(history.state&&history.state.sheet)) history.pushState({sheet:1},""); }
 const closeBtn=`<button class="iconbtn" data-act="close" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>`;
-const head=n=>`<div class="sheet-head"><img src="${SPRITE(n)}" alt=""><h2 id="sheetTitle"><small>#${pad(n)} · Gen ${ROMAN[genOf(n)]}</small>${esc(SPECIES[n-1][0])}</h2>${closeBtn}</div>`;
+const head=n=>`<div class="sheet-head typed" style="${tvars(n)}"><img class="${PIXEL?"":"art"}" src="${PIXEL?SPRITE(n):ART(n)}" alt="" onerror="this.onerror=null;this.className='';this.src='${SPRITE(n)}'"><h2 id="sheetTitle"><small>#${pad(n)} · Gen ${ROMAN[genOf(n)]}</small>${esc(SPECIES[n-1][0])}<span class="tchips">${typesOf(n).map(t=>`<span class="tchip" style="background:${TYPE_COL[t]}">${TYPE_NAMES[t]}</span>`).join("")}</span></h2>${closeBtn}</div>`;
 
 async function openSlot(n){ pushSheet(); const e=entries.get(n); e?showFilled(n,e):showSearch(n); }
 
@@ -512,7 +594,10 @@ async function showForm(n,e,editing,manual,scanPhoto){
     const mv=$("#fmv").value; rec.myValue=mv===""?null:Math.round(parseFloat(mv)*100)/100;
     if(!manual&&e.prices){ rec.prices=e.prices; rec.variant=$("#fv")?$("#fv").value:pickVariant(e.prices,e.variant); rec.usd=usdOf(e.prices,rec.variant); rec.priceUpdated=e.priceUpdated||Date.now(); }
     try{ await put("entries",rec); if(newPhoto) await put("photos",newPhoto,n); }catch(_){ return toast("Couldn't save. Is your phone storage full?"); }
+    const wasEmpty=!entries.has(n);
     entries.set(n,rec); renderGens(); render(); showFilled(n,rec); toast(`Saved #${n} ${SPECIES[n-1][0]}`);
+    celebrate(n,wasEmpty);
+    const pk=document.querySelector(`.pocket[data-n="${n}"]`); if(pk){pk.classList.add("pop");pk.addEventListener("animationend",()=>pk.classList.remove("pop"),{once:true});}
   });
 }
 
@@ -644,13 +729,17 @@ function showStats(){
     <div class="row"><button class="btn" data-act="refresh">${refreshing?"Updating…":"Update prices now"}</button></div>
     <div class="field"><label class="label" for="rto">Fixed USD→RM rate</label><input id="rto" type="number" inputmode="decimal" step="0.0001" min="0" placeholder="Blank = live rate" value="${settings.rateOverride??""}"></div>
     <div class="label">By generation</div>${rows}
+    <div class="label">Appearance</div>
+    <div class="seg3" role="group" aria-label="Appearance">${["auto","light","dark"].map(t=>`<button data-theme-pick="${t}" aria-pressed="${(settings.theme||"auto")===t}">${t==="auto"?"Auto":t==="light"?"Light":"Dark"}</button>`).join("")}</div>
     <div class="label">Backup</div>
     <p class="note">Everything is stored only on this phone. Last backup: ${lb}. A backup file includes your photos.</p>
     <div class="row"><button class="btn primary" data-act="export">Save backup file</button><button class="btn" data-act="import">Restore from file</button></div>
     <div id="imp"></div>
   </div>`);
   $("#rto").addEventListener("change",async ev=>{const v=ev.target.value;settings.rateOverride=v===""?null:parseFloat(v);await put("meta",settings,"settings");showStats();});
-  $("#sheet").onclick=async ev=>{const a=ev.target.closest("[data-act]");if(!a)return;
+  $("#sheet").onclick=async ev=>{const tp=ev.target.closest("[data-theme-pick]");
+    if(tp){settings.theme=tp.dataset.themePick;applyTheme(settings.theme);document.querySelectorAll("[data-theme-pick]").forEach(b=>b.setAttribute("aria-pressed",b===tp));try{await put("meta",settings,"settings");}catch(_){}return;}
+    const a=ev.target.closest("[data-act]");if(!a)return;
     if(a.dataset.act==="close") closeSheet();
     if(a.dataset.act==="refresh"&&!refreshing){a.textContent="Updating…";refreshPrices(true);}
     if(a.dataset.act==="export") exportBackup();
