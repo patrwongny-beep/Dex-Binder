@@ -59,9 +59,6 @@ header.top{background:var(--felt)}
 .brand{margin:0;flex:1;min-width:0;font-family:var(--f-display);font-weight:800;font-stretch:118%;font-size:21px;letter-spacing:-.01em;line-height:1.1}
 .brand{display:flex;align-items:center;gap:12px}
 .brand .logo{height:72px;width:auto;flex:none;display:block}
-.brand .logo-d{display:none}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .brand .logo-l{display:none}:root:not([data-theme="light"]) .brand .logo-d{display:block}}
-:root[data-theme="dark"] .brand .logo-l{display:none}:root[data-theme="dark"] .brand .logo-d{display:block}
 .brand .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .brand small{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block;font-family:var(--f-mono);font-weight:500;font-size:11px;letter-spacing:.12em;color:var(--muted);margin-top:0}
 .iconbtn{border:1px solid var(--sleeve-edge);background:var(--sleeve);border-radius:12px;width:44px;height:44px;display:grid;place-items:center;flex:none;color:var(--ink)}
@@ -266,7 +263,7 @@ dl.facts dd{margin:0;font-weight:600;font-variant-numeric:tabular-nums;min-width
   <div class="wrap">
     <div class="bar">
       <button class="iconbtn" id="backBtn" aria-label="Back to my binders" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
-      <h1 class="brand"><img class="logo logo-l" src="icons/logo-light.png" alt="" width="206" height="240"><img class="logo logo-d" src="icons/logo-dark.png" alt="" width="206" height="240"><span id="title" class="vh">Dex Binder</span><small id="subtitle">NATIONAL DEX · #0001–1025</small></h1>
+      <h1 class="brand"><img class="logo" src="icons/logo.png" alt="" width="244" height="240"><span id="title" class="vh">Dex Binder</span><small id="subtitle" class="vh">NATIONAL DEX · #0001–1025</small></h1>
       <button class="iconbtn" id="editBtn" aria-label="Edit binder" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16v4zM14 6l4 4"/></svg></button>
       <button class="iconbtn" id="statsBtn" aria-label="Stats and backup">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
@@ -495,7 +492,7 @@ function setView(v,noPush){
   document.body.dataset.view=kind;
   $("#backBtn").hidden=kind==="shelf"; $("#editBtn").hidden=kind!=="binder";
   $("#title").textContent=kind==="shelf"?"Dex Binder":kind==="dex"?"National Dex":b.name;
-  $("#subtitle").textContent=DEMO_TAG+(kind==="shelf"?"MY BINDERS":kind==="dex"?"NATIONAL DEX · #0001–1025":b.name.toUpperCase());
+  $("#subtitle").textContent=DEMO_TAG+(kind==="shelf"?"MY BINDERS":kind==="dex"?"#0001–1025":"CUSTOM BINDER");
   $("#q").placeholder=kind==="binder"?"Card, set or number":"Name or number";
   document.title=kind==="shelf"?"Dex Binder":`${kind==="dex"?"National Dex":b.name} · Dex Binder`;
   if(kind!=="shelf") renderGens();
