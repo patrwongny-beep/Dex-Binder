@@ -72,7 +72,7 @@ header.top{background:var(--felt)}
 .val{background:var(--sleeve);border:1px solid var(--sleeve-edge);border-radius:12px;padding:8px 9px;min-width:0}
 .val > span{display:block;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
 .val b{display:block;font-family:var(--f-mono);font-weight:600;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.val.gain b{font-size:13px}
+.val > span small{font-size:inherit;font-weight:500;letter-spacing:.04em}
 .tools{display:flex;gap:8px;padding-block:10px 8px}
 .search{flex:1;min-width:0;border:1px solid var(--sleeve-edge);background:var(--sleeve);border-radius:12px;padding:0 12px;height:44px}
 .seg{display:flex;border:1px solid var(--sleeve-edge);border-radius:12px;overflow:hidden;background:var(--sleeve);flex:none}
@@ -162,6 +162,43 @@ main{padding-block:14px 96px}
 .seg3 button{flex:1;border:0;background:none;min-height:44px;font-weight:700;color:var(--muted)}
 .seg3 button[aria-pressed=true]{background:var(--gold);color:var(--on-gold)}
 @media (prefers-reduced-motion:reduce){.sheet,.scrim,.page,.pocket.pop{animation:none!important}}
+/* views */
+body[data-view="shelf"] .sticky,body[data-view="shelf"] .fab{display:none}
+body[data-view="binder"] .seg,body[data-view="binder"] .chip{display:none}
+.brand span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* shelf */
+.shelf{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,160px),1fr));gap:14px}
+.shelf h2{grid-column:1/-1;margin:4px 0 -2px;font-size:12px;letter-spacing:.12em;color:var(--muted);font-family:var(--f-mono);font-weight:600}
+.cover{position:relative;aspect-ratio:4/5;border:0;border-radius:16px;padding:14px 14px 12px 22px;text-align:left;color:#fff;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;gap:4px;
+  background:linear-gradient(150deg,color-mix(in srgb,var(--bc) 78%,#fff) 0%,var(--bc) 38%,color-mix(in srgb,var(--bc) 50%,#000) 100%);box-shadow:0 10px 24px color-mix(in srgb,var(--bc) 35%,transparent),inset 0 0 0 1px rgb(255 255 255 / .18);transition:transform .18s ease}
+.cover::before{content:"";position:absolute;left:0;top:0;bottom:0;width:12px;background:rgb(0 0 0 / .28);box-shadow:inset -2px 0 0 rgb(255 255 255 / .15)}
+.cover::after{content:"";position:absolute;inset:0;background:var(--sheen);pointer-events:none}
+.cover:active{transform:scale(.97)}
+@media (hover:hover){.cover:hover{transform:translateY(-3px)}}
+.cover .fan{position:absolute;left:50%;top:7%;width:42%;aspect-ratio:63/88;translate:-42% 0}
+.cover .fan i{position:absolute;inset:0;border-radius:6px;background:rgb(255 255 255 / .16) center/cover no-repeat;box-shadow:0 4px 10px rgb(0 0 0 / .3);border:1.5px solid rgb(255 255 255 / .5)}
+.cover .fan i:nth-child(1){rotate:-12deg;translate:-22% 4%}
+.cover .fan i:nth-child(2){rotate:-2deg}
+.cover .fan i:nth-child(3){rotate:9deg;translate:22% 3%}
+.cover .fan i.sp{background-size:88%;background-color:rgb(255 255 255 / .22)}
+.cover .fan i.px{image-rendering:pixelated}
+.cover b{position:relative;z-index:1;font-family:var(--f-display);font-weight:800;font-stretch:112%;font-size:17px;line-height:1.15;text-shadow:0 1px 2px rgb(0 0 0 / .35);text-wrap:balance;overflow-wrap:anywhere}
+.cover span{position:relative;z-index:1;font-family:var(--f-mono);font-size:12px;font-weight:600;display:flex;flex-wrap:wrap;gap:4px}
+.cover span em{font-style:normal;background:rgb(0 0 0 / .32);padding:1px 6px;border-radius:6px}
+.cover .meter{position:relative;z-index:1;height:6px;border-radius:3px;background:rgb(0 0 0 / .3);overflow:hidden}
+.cover .meter i{display:block;height:100%;background:#fff}
+.cover.add{background:transparent;border:2px dashed var(--sleeve-edge);color:var(--muted);box-shadow:none;align-items:center;justify-content:center;padding:14px}
+.cover.add::before,.cover.add::after{display:none}
+.cover.add b{color:var(--ink);text-shadow:none;font-size:15px;text-align:center}
+.cover.add svg{width:34px;height:34px;color:var(--gold)}
+.pocket.addcard{border:2px dashed var(--sleeve-edge);background:transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:var(--muted);font-weight:700;font-size:13px;text-align:center}
+.pocket.addcard::after{display:none}
+.pocket.addcard svg{width:28px;height:28px;color:var(--gold)}
+.swatches{display:flex;flex-wrap:wrap;gap:10px}
+.swatches label{position:relative;width:44px;height:44px;border-radius:50%;cursor:pointer;box-shadow:inset 0 0 0 1px rgb(0 0 0 / .15)}
+.swatches input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+.swatches input:checked+span{position:absolute;inset:-4px;border-radius:50%;border:3px solid var(--ink)}
+.swatches input:focus-visible+span{outline:2px solid var(--gold);outline-offset:3px}
 .empty{text-align:center;color:var(--muted);padding:40px 0}
 
 /* sheet */
@@ -221,7 +258,9 @@ dl.facts dd{margin:0;font-weight:600;font-variant-numeric:tabular-nums;min-width
   <svg width="0" height="0" aria-hidden="true" style="position:absolute"><defs><linearGradient id="foil" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:var(--gold-hi)"/><stop offset=".55" style="stop-color:var(--gold)"/><stop offset="1" style="stop-color:var(--gold-hi)"/></linearGradient></defs></svg>
   <div class="wrap">
     <div class="bar">
-      <h1 class="brand">Dex Binder<small>NATIONAL DEX · #0001–1025</small></h1>
+      <button class="iconbtn" id="backBtn" aria-label="Back to my binders" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <h1 class="brand"><span id="title">Dex Binder</span><small id="subtitle">NATIONAL DEX · #0001–1025</small></h1>
+      <button class="iconbtn" id="editBtn" aria-label="Edit binder" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16v4zM14 6l4 4"/></svg></button>
       <button class="iconbtn" id="statsBtn" aria-label="Stats and backup">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
       </button>
@@ -229,12 +268,12 @@ dl.facts dd{margin:0;font-weight:600;font-variant-numeric:tabular-nums;min-width
     <div class="summary">
       <div class="ring" role="img" id="ringLabel" aria-label="0 of 1025 collected">
         <svg viewBox="0 0 76 76"><circle class="track" cx="38" cy="38" r="33"/><circle class="fill" id="ring" cx="38" cy="38" r="33" stroke-dasharray="207.35" stroke-dashoffset="207.35"/></svg>
-        <div class="pct"><div><b id="count">0</b><span>OF 1025</span></div></div>
+        <div class="pct"><div><b id="count">0</b><span id="countLabel">OF 1025</span></div></div>
       </div>
       <div class="vals">
-        <div class="val"><span>Paid</span><b id="vPaid">—</b></div>
-        <div class="val"><span>Value</span><b id="vWorth">—</b></div>
-        <div class="val gain"><span>Gain</span><b id="vGain">—</b></div>
+        <div class="val"><span>Paid <small>RM</small></span><b id="vPaid">—</b></div>
+        <div class="val"><span>Value <small>RM</small></span><b id="vWorth">—</b></div>
+        <div class="val gain"><span>Gain <small>RM</small></span><b id="vGain">—</b></div>
       </div>
     </div>
   </div>
@@ -253,7 +292,7 @@ dl.facts dd{margin:0;font-weight:600;font-variant-numeric:tabular-nums;min-width
   </div>
 </nav>
 
-<main class="wrap"><div class="binder" id="grid"></div><p class="empty" id="none" hidden>No Pokémon match that filter.</p></main>
+<main class="wrap"><div class="binder" id="grid"></div><p class="empty" id="none" hidden>Nothing matches that filter.</p></main>
 
 <button class="fab" id="scanBtn" aria-label="Scan a card"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2"/><rect x="8" y="7" width="8" height="10" rx="1.5"/></svg>Scan card</button>
 <div class="scrim" id="scrim" hidden></div>
@@ -279,8 +318,10 @@ const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&
 
 /* ---------- storage (IndexedDB, on this phone only) ---------- */
 let dbp;
-function db(){ if(!dbp) dbp=new Promise((res,rej)=>{const r=indexedDB.open("dexbinder",1);
-  r.onupgradeneeded=()=>{const d=r.result;d.createObjectStore("entries",{keyPath:"dex"});d.createObjectStore("photos");d.createObjectStore("meta");};
+function db(){ if(!dbp) dbp=new Promise((res,rej)=>{const r=indexedDB.open("dexbinder",2);
+  r.onupgradeneeded=()=>{const d=r.result,has=n=>d.objectStoreNames.contains(n);
+    if(!has("entries"))d.createObjectStore("entries",{keyPath:"dex"}); if(!has("photos"))d.createObjectStore("photos"); if(!has("meta"))d.createObjectStore("meta");
+    if(!has("binders"))d.createObjectStore("binders",{keyPath:"id"}); if(!has("items"))d.createObjectStore("items",{keyPath:"id"});};
   r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);}); return dbp;}
 async function tx(store,mode,fn){const d=await db();return new Promise((res,rej)=>{const t=d.transaction(store,mode);const s=t.objectStore(store);const out=fn(s);t.oncomplete=()=>res(out instanceof IDBRequest?out.result:out);t.onerror=()=>rej(t.error);});}
 const getAll=st=>tx(st,"readonly",s=>s.getAll());
@@ -291,12 +332,19 @@ async function getAllKV(st){const d=await db();return new Promise((res,rej)=>{co
 
 let entries=new Map(); let settings={currency:"RM",lastBackup:null};
 let filter="all", gen=0, query="", rfilter="";
+let binders=new Map(), items=new Map(), view="shelf";
+const DEMO_TAG="";
+const BCOLORS=[["Gold","#b8860b"],["Crimson","#b3263a"],["Cobalt","#2856c9"],["Emerald","#18865a"],["Violet","#6b3fc7"],["Teal","#11808a"],["Graphite","#3d4350"],["Rose","#c2477d"]];
+const newId=p=>p+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const itemsIn=id=>[...items.values()].filter(i=>i.binder===id).sort((a,b)=>a.added-b.added);
+const curBinder=()=>view.startsWith("b:")?binders.get(view.slice(2)):null;
 
 async function load(){
   try{ (await getAll("entries")).forEach(e=>entries.set(e.dex,e));
+       (await getAll("binders")).forEach(b=>binders.set(b.id,b)); (await getAll("items")).forEach(i=>items.set(i.id,i));
        const s=await get("meta","settings"); if(s) settings={...settings,...s}; if(settings.theme) applyTheme(settings.theme); }catch(e){ toast("Couldn't open storage on this device."); }
   if(navigator.storage&&navigator.storage.persist){ try{ await navigator.storage.persist(); }catch(e){} }
-  renderGens(); render();
+  history.replaceState({view:"shelf"},""); setView("shelf",true);
   if(navigator.onLine && Date.now()-(settings.pricesUpdated||0) > 20*3600*1000) refreshPrices(false);
 }
 const fmt=v=>Number(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
@@ -336,17 +384,18 @@ let refreshing=false;
 async function refreshPrices(manual){
   if(refreshing) return; refreshing=true;
   const rateOk=await refreshRate();
-  const list=[...entries.values()].filter(e=>e.id&&e.src!=="tcgdex");
+  const list=[...entries.values(),...items.values()].filter(e=>(e.binder?e.cardId:e.id)&&e.src!=="tcgdex");
+  const cid=e=>e.binder?e.cardId:e.id;
   let updated=0, failed=false;
   for(let i=0;i<list.length;i+=40){
     const chunk=list.slice(i,i+40);
-    const q="("+chunk.map(e=>`id:"${e.id}"`).join(" OR ")+")";
+    const q="("+chunk.map(e=>`id:"${cid(e)}"`).join(" OR ")+")";
     try{
       const r=await fetch(`https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(q)}&pageSize=250&select=id,tcgplayer`);
       if(!r.ok) throw 0; const j=await r.json(); const byId=new Map(j.data.map(c=>[c.id,c]));
-      for(const e of chunk){const c=byId.get(e.id); if(!c) continue; const pr=c.tcgplayer?.prices||null;
+      for(const e of chunk){const c=byId.get(cid(e)); if(!c) continue; const pr=c.tcgplayer?.prices||null;
         e.prices=pr; e.variant=pickVariant(pr,e.variant); e.usd=usdOf(pr,e.variant); e.priceUpdated=Date.now();
-        await put("entries",e); updated++;}
+        await put(e.binder?"items":"entries",e); updated++;}
     }catch(_){failed=true;}
   }
   if(!failed){settings.pricesUpdated=Date.now(); await put("meta",settings,"settings");}
@@ -408,8 +457,8 @@ function renderGens(){
     ROMAN.map((r,i)=>`<button class="chip" data-g="${i+1}" aria-pressed="${gen===i+1}">Gen ${r}<em>${counts[i]}/${tot(i)}</em></button>`).join("");
 }
 const short=v=>v==null?"—":(Math.abs(v)>=10000?`RM ${(v/1000).toFixed(1)}k`:`RM ${Math.round(v).toLocaleString()}`);
-function totals(){
-  const all=[...entries.values()], sum=(l,f)=>l.reduce((s,e)=>s+f(e),0);
+function totals(list){
+  const all=list||[...entries.values()], sum=(l,f)=>l.reduce((s,e)=>s+f(e),0);
   const paid=all.filter(e=>e.price!=null), val=all.filter(e=>valueOf(e)!=null), both=all.filter(e=>e.price!=null&&valueOf(e)!=null);
   return {paid:paid.length?sum(paid,e=>e.price):null, worth:val.length?sum(val,valueOf):null, bPaid:sum(both,e=>e.price), bVal:sum(both,valueOf), both:both.length};
 }
@@ -422,7 +471,31 @@ function pocket(n){
   const card=e.img?`<img class="cardimg" loading="lazy" decoding="async" alt="" src="${esc(e.img)}" onerror="this.closest('.pocket').classList.remove('card');this.remove()">`:"";
   return `<button class="pocket owned${e.img?" card":""}" style="${tv}" data-n="${n}" aria-label="#${n} ${esc(name)}, owned${e.rarity?", "+esc(rLabel(e.rarity)):""}${v!=null?", value "+esc(short(v)):""}">${badge(e.rarity)}<img class="sp${PIXEL?" px":""}" loading="lazy" decoding="async" alt="" width="96" height="96" src="${PIXEL?SPRITE(n):ART(n)}"${PIXEL?"":` onerror="this.onerror=function(){this.style.visibility='hidden'};this.classList.add('px');this.src='${SPRITE(n)}'"`}>${card}<span class="no">#${pad(n)}</span><span class="nm">${esc(name)}${sub}</span></button>`;
 }
-function render(){
+function setHeaderTotals(list){
+  const t=totals(list);
+  const num=v=>v==null?"—":(Math.abs(v)>=100000?`${(v/1000).toFixed(0)}k`:Math.round(v).toLocaleString());
+  countTo($("#vPaid"),t.paid,num); countTo($("#vWorth"),t.worth,num);
+  const d=t.both?t.bVal-t.bPaid:null;
+  countTo($("#vGain"),d,v=>v==null?"—":`<span class="${v>0.5?"up":v<-0.5?"down":""}">${v>0.5?"+":v<-0.5?"−":""}${num(Math.abs(v))}</span>`);
+}
+function setRing(count,frac,label,aria){countTo($("#count"),count,v=>String(Math.round(v)));$("#countLabel").textContent=label;$("#ring").style.strokeDashoffset=String(207.35*(1-frac));$("#ringLabel").setAttribute("aria-label",aria);}
+function setView(v,noPush){
+  if(v.startsWith("b:")&&!binders.has(v.slice(2))) v="shelf";
+  const changed=v!==view; view=v;
+  if(changed){query="";rfilter="";filter="all";gen=0;$("#q").value="";document.querySelectorAll(".seg button").forEach(x=>x.setAttribute("aria-pressed",x.dataset.f==="all"));render.done=false;window.scrollTo(0,0);}
+  if(changed&&!noPush) history.pushState({view:v},"");
+  const b=curBinder(), kind=v==="shelf"?"shelf":v==="dex"?"dex":"binder";
+  document.body.dataset.view=kind;
+  $("#backBtn").hidden=kind==="shelf"; $("#editBtn").hidden=kind!=="binder";
+  $("#title").textContent=kind==="shelf"?"Dex Binder":kind==="dex"?"National Dex":b.name;
+  $("#subtitle").textContent=DEMO_TAG+(kind==="shelf"?"MY BINDERS":kind==="dex"?"#0001–1025":"CUSTOM BINDER");
+  $("#q").placeholder=kind==="binder"?"Card, set or number":"Name or number";
+  document.title=kind==="shelf"?"Dex Binder":`${kind==="dex"?"National Dex":b.name} · Dex Binder`;
+  if(kind!=="shelf") renderGens();
+  render();
+}
+function render(){ if(view==="shelf") return renderShelf(); if(view==="dex") return renderDex(); return renderBinder(); }
+function renderDex(){
   const q=query.trim().toLowerCase(), qn=/^\d+$/.test(q)?String(parseInt(q,10)):null;
   const flat=filter!=="all"||gen||q||rfilter;
   const match=n=>{const name=SPECIES[n-1][0],have=entries.has(n);
@@ -439,18 +512,57 @@ function render(){
     html+=`<section class="page" aria-label="Binder page ${p+1}"><div class="page-h"><span>PAGE <b>${p+1}</b> · #${pad(a)}–${pad(z)}</span><span class="${have===z-a+1?"full":""}">${have}/${z-a+1}</span></div><div class="grid">${g}</div></section>`;
   }
   const el=$("#grid"); el.className="binder"+(flat?" flat":"")+(render.done?"":" intro"); render.done=true; el.innerHTML=html; $("#none").hidden=shown>0;
-  countTo($("#count"),entries.size,v=>String(Math.round(v)));
-  $("#ring").style.strokeDashoffset=String(207.35*(1-entries.size/1025));
-  $("#ringLabel").setAttribute("aria-label",`${entries.size} of 1025 collected`);
-  const t=totals();
-  countTo($("#vPaid"),t.paid,short); countTo($("#vWorth"),t.worth,short);
-  const d=t.both?t.bVal-t.bPaid:null;
-  countTo($("#vGain"),d,v=>v==null?"—":`<span class="${v>0.5?"up":v<-0.5?"down":""}">${v>0.5?"+":v<-0.5?"−":""}${short(Math.abs(v))}</span>`);
+  setRing(entries.size,entries.size/1025,"OF 1025",`${entries.size} of 1025 collected`);
+  setHeaderTotals([...entries.values()]);
+}
+const SPR_BG=n=>PIXEL?SPRITE(n):ART(n);
+function fan(list){
+  const pics=list.slice(-3).map(e=>{const d=e.dex||(e.dexNums||[]).find(x=>x>=1&&x<=1025);
+    if(e.img) return `<i style="background-image:url('${esc(e.img)}')"></i>`;
+    if(d) return `<i class="sp${PIXEL?" px":""}" style="background-image:url('${SPR_BG(d)}')"></i>`;
+    return `<i></i>`;});
+  return pics.length?`<div class="fan" aria-hidden="true">${pics.join("")}</div>`:"";
+}
+function coverStats(list){const t=totals(list);const d=t.both?t.bVal-t.bPaid:null;
+  return `${t.worth!=null?`<em>${short(t.worth)}</em>`:""}${d!=null?`<em class="${d>0.5?"up":d<-0.5?"down":""}" style="color:${d>0.5?"#b9f6ca":d<-0.5?"#ffc2b8":"#fff"}">${d>0.5?"+":d<-0.5?"−":""}${short(Math.abs(d))}</em>`:""}`;}
+function renderShelf(){
+  const dexList=[...entries.values()].sort((a,b)=>a.added-b.added);
+  let html=`<h2>MY BINDERS</h2><button class="cover" style="--bc:#b8860b" data-open="dex" aria-label="National Dex, ${entries.size} of 1025">${fan(dexList)}<b>National Dex</b><div class="meter" aria-hidden="true"><i style="width:${entries.size/1025*100}%"></i></div><span><em>${entries.size}/1025</em>${coverStats(dexList)}</span></button>`;
+  [...binders.values()].sort((a,b)=>a.created-b.created).forEach(b=>{const l=itemsIn(b.id);
+    html+=`<button class="cover" style="--bc:${esc(b.color)}" data-open="b:${esc(b.id)}" aria-label="${esc(b.name)}, ${l.length} cards">${fan(l)}<b>${esc(b.name)}</b><span><em>${l.length} card${l.length===1?"":"s"}</em>${coverStats(l)}</span></button>`;});
+  html+=`<button class="cover add" data-act-new="1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><b>New binder</b></button>`;
+  const el=$("#grid"); el.className="shelf"; el.innerHTML=html; $("#none").hidden=true;
+  setRing(entries.size,entries.size/1025,"DEX",`National Dex ${entries.size} of 1025 collected`);
+  setHeaderTotals([...entries.values(),...items.values()]);
+}
+function itemPocket(it){
+  const d=(it.dexNums||[]).find(x=>x>=1&&x<=1025), b=binders.get(it.binder);
+  const tv=d?tvars(d):`--t1:${b?b.color:"#888"};--t2:${b?b.color:"#888"}`;
+  const v=valueOf(it), dd=v!=null&&it.price!=null?v-it.price:null;
+  const sub=v!=null?`<i class="${dd>0?"up":dd<0?"down":""}">${short(v)}</i>`:`<i>${esc(it.set||"")}</i>`;
+  const sp=d?`<img class="sp${PIXEL?" px":""}" loading="lazy" decoding="async" alt="" width="96" height="96" src="${SPR_BG(d)}"${PIXEL?"":` onerror="this.onerror=function(){this.style.visibility='hidden'};this.classList.add('px');this.src='${SPRITE(d)}'"`}>`:"";
+  const card=it.img?`<img class="cardimg" loading="lazy" decoding="async" alt="" src="${esc(it.img)}" onerror="this.closest('.pocket').classList.remove('card');this.remove()">`:"";
+  return `<button class="pocket owned${it.img?" card":""}" style="${tv}" data-item="${esc(it.id)}" aria-label="${esc(it.cardName)}, ${esc(it.set||"")} ${esc(it.number||"")}${it.rarity?", "+esc(rLabel(it.rarity)):""}${v!=null?", value "+esc(short(v)):""}">${badge(it.rarity)}${sp}${card}<span class="no">${esc(it.number||"")}</span><span class="nm">${esc(it.cardName)}${sub}</span></button>`;
+}
+const ADD_POCKET=`<button class="pocket addcard" data-add="1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Add card</button>`;
+function renderBinder(){
+  const b=curBinder(); if(!b) return setView("shelf");
+  const all=itemsIn(b.id), q=query.trim().toLowerCase(), flat=!!(q||rfilter);
+  const list=all.filter(it=>(!rfilter||rCode(it.rarity)===rfilter)&&(!q||`${it.cardName} ${it.set} ${it.number} ${it.rarity}`.toLowerCase().includes(q)));
+  let html="";
+  if(flat) html=`<div class="grid">${list.map(itemPocket).join("")}</div>`;
+  else{ const cells=[...list.map(itemPocket),ADD_POCKET];
+    for(let p=0;p<Math.ceil(cells.length/9);p++){const g=cells.slice(p*9,p*9+9);const filled=Math.min(9,all.length-p*9);
+      html+=`<section class="page" aria-label="Binder page ${p+1}"><div class="page-h"><span>PAGE <b>${p+1}</b></span><span class="${filled===9?"full":""}">${Math.max(0,filled)}/9</span></div><div class="grid">${g.join("")}</div></section>`;}}
+  const el=$("#grid"); el.className="binder"+(flat?" flat":"")+(render.done?"":" intro"); render.done=true; el.innerHTML=html;
+  $("#none").hidden=!flat||list.length>0;
+  setRing(all.length,all.length?1:0,all.length===1?"CARD":"CARDS",`${all.length} cards in ${b.name}`);
+  setHeaderTotals(all);
 }
 let qt; $("#q").addEventListener("input",e=>{clearTimeout(qt);qt=setTimeout(()=>{query=e.target.value;render();},140);});
 document.querySelectorAll(".seg button").forEach(b=>b.addEventListener("click",()=>{filter=b.dataset.f;document.querySelectorAll(".seg button").forEach(x=>x.setAttribute("aria-pressed",x===b));render();}));
 function renderRarities(){
-  const codes=new Map(); entries.forEach(e=>{if(e.rarity){const c=rCode(e.rarity);codes.set(c,(codes.get(c)||0)+1);}});
+  const codes=new Map(); const src=view.startsWith("b:")?itemsIn(view.slice(2)):[...entries.values()]; src.forEach(e=>{if(e.rarity){const c=rCode(e.rarity);codes.set(c,(codes.get(c)||0)+1);}});
   const order=RARITY.map(r=>r[1]); const ix=c=>{const i=order.indexOf(c);return i<0?999:i;}; const list=[...codes.keys()].sort((a,b)=>ix(a)-ix(b));
   if(rfilter&&!codes.has(rfilter)) rfilter="";
   const lab=c=>{const r=RARITY.find(x=>x[1]===c);return r?rLabel(r[0]):c;};
@@ -459,7 +571,14 @@ function renderRarities(){
 }
 $("#rfilter").addEventListener("change",e=>{rfilter=e.target.value;e.target.classList.toggle("on",!!rfilter);render();});
 $("#gens").addEventListener("click",e=>{const b=e.target.closest(".chip");if(!b)return;gen=+b.dataset.g;renderGens();render();});
-$("#grid").addEventListener("click",e=>{const p=e.target.closest(".pocket");if(p) openSlot(+p.dataset.n);});
+$("#grid").addEventListener("click",e=>{
+  const c=e.target.closest(".cover"); if(c){ if(c.dataset.actNew){pushSheet();editBinder(null);} else setView(c.dataset.open); return; }
+  const p=e.target.closest(".pocket"); if(!p) return;
+  if(p.dataset.add){pushSheet();addToBinder(view.slice(2));return;}
+  if(p.dataset.item){pushSheet();showItem(p.dataset.item);return;}
+  openSlot(+p.dataset.n);});
+$("#backBtn").addEventListener("click",()=>{ if(history.state&&history.state.view&&history.state.view!=="shelf") history.back(); else setView("shelf",true); });
+$("#editBtn").addEventListener("click",()=>{pushSheet();editBinder(curBinder());});
 
 /* ---------- sheet ---------- */
 let urls=[];
@@ -475,8 +594,9 @@ document.addEventListener("keydown",e=>{const sh=$("#sheet");if(sh.hidden)return
     const a=f[0],z=f[f.length-1];if(e.shiftKey&&document.activeElement===a){e.preventDefault();z.focus();}else if(!e.shiftKey&&document.activeElement===z){e.preventDefault();a.focus();}}});
 function closeSheet(){$("#sheet").hidden=true;$("#scrim").hidden=true;document.body.style.overflow="";freeUrls();restoreFocus();if(history.state&&history.state.sheet)history.back();}
 $("#scrim").addEventListener("click",closeSheet);
-window.addEventListener("popstate",()=>{if(!$("#sheet").hidden){$("#sheet").hidden=true;$("#scrim").hidden=true;document.body.style.overflow="";freeUrls();restoreFocus();}});
-function pushSheet(){ if(!(history.state&&history.state.sheet)) history.pushState({sheet:1},""); }
+window.addEventListener("popstate",e=>{if(!$("#sheet").hidden){$("#sheet").hidden=true;$("#scrim").hidden=true;document.body.style.overflow="";freeUrls();restoreFocus();return;}
+  const v=(e.state&&e.state.view)||"shelf"; if(v!==view) setView(v,true);});
+function pushSheet(){ if(!(history.state&&history.state.sheet)) history.pushState({sheet:1,view},""); }
 const closeBtn=`<button class="iconbtn" data-act="close" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>`;
 const head=n=>`<div class="sheet-head typed" style="${tvars(n)}"><img class="${PIXEL?"":"art"}" src="${PIXEL?SPRITE(n):ART(n)}" alt="" onerror="this.onerror=null;this.className='';this.src='${SPRITE(n)}'"><h2 id="sheetTitle"><small>#${pad(n)} · Gen ${ROMAN[genOf(n)]}</small>${esc(SPECIES[n-1][0])}<span class="tchips">${typesOf(n).map(t=>`<span class="tchip" style="--tc:${TYPE_COL[t]}">${TYPE_NAMES[t]}</span>`).join("")}</span></h2>${closeBtn}</div>`;
 
@@ -708,11 +828,165 @@ function showScan(blob){
     find({num:$("#snum").value.trim(),total:$("#stot").value.trim()||null,dex:hit>=0?hit+1:null});});
   $("#sheet").onclick=ev=>{const a=ev.target.closest("[data-act]");if(a&&a.dataset.act==="close") return closeSheet();
     const r=ev.target.closest(".res"); if(!r) return; const c=list.find(x=>x.id===r.dataset.id); if(!c) return;
+    if(view.startsWith("b:")) return showItemForm({...c},{binderId:view.slice(2),scanPhoto:photo});
     const dex=c.dexNums.find(d=>d>=1&&d<=1025);
     if(!dex) return toast("That card isn't a Pokémon in the National Dex.");
     const prev=entries.get(dex)||{};
     showForm(dex,{...c,price:prev.price,notes:prev.notes,added:prev.added},false,false,photo);};
   if(blob){showPhoto(blob);$("#sman").hidden=false;}
+}
+
+/* ---------- custom binders ---------- */
+function editBinder(b){
+  const isNew=!b; const col=b?b.color:BCOLORS[(binders.size+1)%BCOLORS.length][1];
+  openSheet(`<div class="sheet-head"><h2 id="sheetTitle"><small>${isNew?"NEW":"EDIT"}</small>${isNew?"New binder":"Edit binder"}</h2>${closeBtn}</div>
+  <form class="sheet-body" id="bf">
+    <div class="field"><label class="label" for="bname">Name</label><input id="bname" required maxlength="40" placeholder="e.g. Charizard collection" value="${esc(b?b.name:"")}"></div>
+    <fieldset class="field" style="border:0;padding:0;margin:0"><legend class="label" style="margin-bottom:8px">Cover colour</legend>
+      <div class="swatches">${BCOLORS.map(([n,c])=>`<label style="background:${c}" title="${n}"><input type="radio" name="bcol" value="${c}" aria-label="${n}" ${c===col?"checked":""}><span></span></label>`).join("")}</div></fieldset>
+    <button class="btn primary" type="submit">${isNew?"Create binder":"Save changes"}</button>
+    ${isNew?"":`<div id="bdel"><button type="button" class="btn danger" data-act="bdel" style="width:100%">Delete binder</button></div>`}
+  </form>`);
+  if(isNew) setTimeout(()=>$("#bname")&&$("#bname").focus(),350);
+  $("#bf").addEventListener("submit",async ev=>{ev.preventDefault();
+    const name=$("#bname").value.trim(); if(!name) return;
+    const color=(document.querySelector('input[name="bcol"]:checked')||{}).value||BCOLORS[0][1];
+    const rec=b?{...b,name,color}:{id:newId("b"),name,color,created:Date.now()};
+    try{await put("binders",rec);}catch(_){return toast("Couldn't save the binder.");}
+    binders.set(rec.id,rec); closeSheet();
+    if(isNew){setTimeout(()=>setView("b:"+rec.id),180);toast(`Created ${name}`);} else {setView(view,true);toast("Binder saved");}
+  });
+  $("#sheet").onclick=async ev=>{const a=ev.target.closest("[data-act]");if(!a)return;
+    if(a.dataset.act==="close") closeSheet();
+    if(a.dataset.act==="bdel"){const n=itemsIn(b.id).length;$("#bdel").innerHTML=`<div class="confirm"><p>Delete "${esc(b.name)}"${n?` and its ${n} card${n===1?"":"s"}`:""}? This can't be undone.</p><button type="button" class="btn" data-act="bkeep">Keep</button><button type="button" class="btn primary" data-act="byes">Delete</button></div>`;}
+    if(a.dataset.act==="bkeep") editBinder(b);
+    if(a.dataset.act==="byes"){for(const it of itemsIn(b.id)){await del("items",it.id);await del("photos","i:"+it.id);items.delete(it.id);}
+      await del("binders",b.id); binders.delete(b.id); closeSheet(); setTimeout(()=>{if(history.state&&history.state.view&&history.state.view!=="shelf") history.back(); else setView("shelf",true);},180); toast(`Deleted ${b.name}`);}
+  };
+}
+const itemHead=(it,label)=>{const d=(it.dexNums||[]).find(x=>x>=1&&x<=1025);
+  return d?`<div class="sheet-head typed" style="${tvars(d)}"><img class="${PIXEL?"":"art"}" src="${SPR_BG(d)}" alt="" onerror="this.onerror=null;this.className='';this.src='${SPRITE(d)}'"><h2 id="sheetTitle"><small>${esc(label)}</small>${esc(it.cardName||"New card")}<span class="tchips">${typesOf(d).map(t=>`<span class="tchip" style="--tc:${TYPE_COL[t]}">${TYPE_NAMES[t]}</span>`).join("")}</span></h2>${closeBtn}</div>`
+   :`<div class="sheet-head"><h2 id="sheetTitle"><small>${esc(label)}</small>${esc(it.cardName||"New card")}</h2>${closeBtn}</div>`;};
+async function nameSearch(text){
+  const t=text.trim(); if(!t) return [];
+  const nm=t.match(/^([A-Za-z]{0,4}\d{1,3})\s*\/\s*([A-Za-z]{0,3}\d{2,3})$/); if(nm) return lookupScan({num:nm[1],total:nm[2],dex:null});
+  const safe=t.replace(/["\\]/g,"");
+  const q=/\s/.test(safe)?`name:"${safe}*"`:`name:${safe}*`;
+  const r=await fetch(`https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(q)}&orderBy=-set.releaseDate&pageSize=60&select=id,name,number,rarity,set,images,tcgplayer,nationalPokedexNumbers`);
+  if(!r.ok) throw new Error("search"); if(Date.now()-(settings.rateUpdated||0)>12*3600*1000) await refreshRate();
+  return (await r.json()).data.map(mapTcg);
+}
+function addToBinder(binderId,replaceId){
+  const b=binders.get(binderId);
+  openSheet(`<div class="sheet-head"><h2 id="sheetTitle"><small>${esc(b.name.toUpperCase())}</small>${replaceId?"Replace card":"Add a card"}</h2>${closeBtn}</div><div class="sheet-body">
+    <form id="nsf" class="field"><label class="label" for="ns">Search cards</label>
+      <div class="tools" style="padding:0"><input class="search" id="ns" type="search" placeholder="Pokémon or card name, or 199/165" autocomplete="off"><button class="btn primary" type="submit">Search</button></div></form>
+    <p class="status" id="nst" hidden></p>
+    <div class="results" id="nres"></div>
+    <div class="row">${replaceId?"":`<button class="btn" data-act="scan">Scan a card</button>`}<button class="btn" data-act="manual">Enter by hand</button></div>
+  </div>`);
+  setTimeout(()=>$("#ns")&&$("#ns").focus(),350);
+  let list=[];
+  const st=(m,busy)=>{$("#nst").hidden=!m;$("#nst").innerHTML=(busy?'<span class="spin"></span>':"")+esc(m||"");};
+  $("#nsf").addEventListener("submit",async ev=>{ev.preventDefault();const t=$("#ns").value;if(!t.trim())return;
+    st(`Searching for "${t.trim()}"…`,true); $("#nres").innerHTML="";
+    try{list=await nameSearch(t);}catch(_){return st("Couldn't reach the card database. Check your connection, or enter the card by hand.");}
+    st(list.length?`${list.length} card${list.length===1?"":"s"} found. Tap yours.`:"No cards found. Try a shorter name, or enter it by hand.");
+    $("#nres").innerHTML=list.map(c=>`<button class="res" data-id="${esc(c.id)}"><img loading="lazy" src="${esc(c.img)}" alt=""><b>${esc(c.cardName)}</b><span>${esc(c.set)} · ${esc(c.number)}${c.rarity?`<br>${badge(c.rarity)} ${esc(rLabel(c.rarity))}`:""}</span>${(()=>{const u=usdOf(c.prices,pickVariant(c.prices));return u!=null?`<span class="mk">${toRM(u)!=null?money(toRM(u)):usd(u)}</span>`:"";})()}</button>`).join("");});
+  $("#sheet").onclick=ev=>{const a=ev.target.closest("[data-act]");
+    if(a&&a.dataset.act==="close") return closeSheet();
+    if(a&&a.dataset.act==="scan") return showScan();
+    if(a&&a.dataset.act==="manual"){const prev=replaceId?items.get(replaceId):{};return showItemForm({price:prev.price,notes:prev.notes,added:prev.added},{binderId,itemId:replaceId,manual:true});}
+    const r=ev.target.closest(".res"); if(!r) return; const c=list.find(x=>x.id===r.dataset.id); if(!c) return;
+    const prev=replaceId?items.get(replaceId):{};
+    showItemForm({...c,price:prev.price,notes:prev.notes,added:prev.added,myValue:null},{binderId,itemId:replaceId});};
+}
+async function showItem(id){
+  const it=items.get(id); if(!it) return closeSheet();
+  let photo=""; try{const b=await get("photos","i:"+id); if(b){const u=URL.createObjectURL(b);urls.push(u);photo=u;}}catch(_){}
+  openSheet(itemHead(it,(binders.get(it.binder)||{name:""}).name.toUpperCase())+`<div class="sheet-body">
+    <div class="filled">
+      <figure><div class="label">Card</div>${it.img?`<img src="${esc(it.img)}" alt="${esc(it.cardName)} card">`:`<div class="noimg">No database image</div>`}</figure>
+      <figure><div class="label">My copy</div>${photo?`<img src="${photo}" alt="Your photo of the card">`:`<div class="noimg">No photo yet</div>`}</figure>
+    </div>
+    <dl class="facts">
+      <dt>Set</dt><dd>${esc(it.set)}${it.series?` <span class="note">(${esc(it.series)})</span>`:""}</dd>
+      <dt>Number</dt><dd>${esc(it.number)}</dd>
+      ${it.rarity?`<dt>Rarity</dt><dd>${badge(it.rarity)} ${esc(rLabel(it.rarity))}</dd>`:""}
+    </dl>
+    <div class="label">Value</div>
+    <dl class="facts">
+      <dt>Price paid</dt><dd>${money(it.price)}</dd>
+      <dt>Market</dt><dd>${marketOf(it)!=null?`${money(marketOf(it))} <span class="note">· ${usd(it.usd)} TCGplayer${it.variant?`, ${esc(vName(it.variant))}`:""}</span>`:`— <span class="note">${it.cardId?"no TCGplayer price":"enter your own value"}</span>`}</dd>
+      ${it.myValue!=null?`<dt>My value</dt><dd>${money(it.myValue)} <span class="note">· used instead of market</span></dd>`:""}
+      <dt>Gain/loss</dt><dd>${gainHtml(it.price,valueOf(it))}</dd>
+      <dt>Added</dt><dd>${new Date(it.added).toLocaleDateString()}</dd>
+      ${it.notes?`<dt>Notes</dt><dd>${esc(it.notes)}</dd>`:""}
+    </dl>
+    <div class="row"><button class="btn" data-act="edit">Edit details</button><button class="btn" data-act="replace">Replace card</button></div>
+    <div id="rm"><button class="btn danger" data-act="remove" style="width:100%">Remove from binder</button></div>
+  </div>`);
+  $("#sheet").onclick=async ev=>{const a=ev.target.closest("[data-act]");if(!a)return;
+    if(a.dataset.act==="close") closeSheet();
+    if(a.dataset.act==="edit") showItemForm(it,{binderId:it.binder,itemId:it.id,manual:!it.cardId,editing:true});
+    if(a.dataset.act==="replace") addToBinder(it.binder,it.id);
+    if(a.dataset.act==="remove") $("#rm").innerHTML=`<div class="confirm"><p>Remove ${esc(it.cardName)} from this binder? Its photo is removed too.</p><button class="btn" data-act="keep">Keep</button><button class="btn primary" data-act="yesrm">Remove</button></div>`;
+    if(a.dataset.act==="keep") showItem(id);
+    if(a.dataset.act==="yesrm"){await del("items",id);await del("photos","i:"+id);items.delete(id);renderGens();render();closeSheet();toast("Removed from binder");}
+  };
+}
+async function showItemForm(e,{binderId,itemId,manual,editing,scanPhoto}={}){
+  let existing=null; if(itemId){try{existing=await get("photos","i:"+itemId);}catch(_){}}
+  if(scanPhoto) existing=scanPhoto;
+  let preview=""; if(existing){const u=URL.createObjectURL(existing);urls.push(u);preview=u;}
+  const b=binders.get(binderId);
+  openSheet(itemHead(e,b.name.toUpperCase())+`<form class="sheet-body" id="f">
+    ${manual?`<div class="field"><label class="label" for="fn">Card name</label><input id="fn" required value="${esc(e.cardName||"")}"></div>
+    <div class="two"><div class="field"><label class="label" for="fs">Set</label><input id="fs" required value="${esc(e.set||"")}"></div>
+    <div class="field"><label class="label" for="fnum">Number</label><input id="fnum" required placeholder="e.g. 58/102" value="${esc(e.number||"")}"></div></div>
+    <div class="field"><label class="label" for="fpk">Pokémon (for colour, optional)</label><input id="fpk" list="pklist" autocomplete="off" value="${esc((()=>{const d=(e.dexNums||[])[0];return d?SPECIES[d-1][0]:"";})())}"><datalist id="pklist">${SPECIES.map(([n])=>`<option value="${esc(n)}">`).join("")}</datalist></div>
+    <div class="field"><label class="label" for="frar">Rarity</label><select id="frar"><option value="">Not set</option>${RARITY.map(([r,c])=>`<option value="${esc(r)}" ${r===e.rarity?"selected":""}>${esc(c)} · ${esc(rLabel(r))}</option>`).join("")}</select></div>`
+    :`<div class="filled"><figure>${e.img?`<img src="${esc(e.img)}" alt="">`:`<div class="noimg">No image</div>`}</figure>
+      <dl class="facts" style="align-content:start"><dt>Set</dt><dd>${esc(e.set)}</dd><dt>No.</dt><dd>${esc(e.number)}</dd>${e.rarity?`<dt>Rarity</dt><dd>${badge(e.rarity)} ${esc(rLabel(e.rarity))}</dd>`:""}</dl></div>`}
+    ${!manual&&variants(e.prices).length?`<div class="field"><label class="label" for="fv">Printing (sets the market price)</label><select id="fv">${variants(e.prices).map(k=>`<option value="${esc(k)}" ${k===pickVariant(e.prices,e.variant)?"selected":""}>${esc(vName(k))} · ${usd(usdOf(e.prices,k))}${toRM(usdOf(e.prices,k))!=null?` ≈ ${money(toRM(usdOf(e.prices,k)))}`:""}</option>`).join("")}</select></div>`:""}
+    <div class="two">
+      <div class="field"><label class="label" for="fp">Price paid (RM)</label><input id="fp" type="number" inputmode="decimal" step="0.01" min="0" value="${e.price??""}"></div>
+      <div class="field"><label class="label" for="fmv">My value (RM)</label><input id="fmv" type="number" inputmode="decimal" step="0.01" min="0" placeholder="${!manual&&variants(e.prices).length?"Use market":"Optional"}" value="${e.myValue??""}"></div>
+    </div>
+    <div class="field"><span class="label">Photo of my card</span>
+      <div class="row"><label class="btn" tabindex="0">Take photo<input id="fcam" type="file" accept="image/*" capture="environment" hidden></label>
+      <label class="btn" tabindex="0">From gallery<input id="fgal" type="file" accept="image/*" hidden></label></div>
+      <img id="pv" src="${preview}" alt="Photo preview" style="max-height:240px;object-fit:contain;border-radius:10px" ${preview?"":"hidden"}>
+    </div>
+    <div class="field"><label class="label" for="fnotes">Notes</label><textarea id="fnotes" rows="2" placeholder="Condition, where you bought it…">${esc(e.notes||"")}</textarea></div>
+    <div class="row"><button type="button" class="btn" data-act="back">Back</button><button type="submit" class="btn primary">${itemId?"Save":"Add to binder"}</button></div>
+  </form>`);
+  let newPhoto=scanPhoto||null;
+  const pick=async ev=>{const f=ev.target.files[0];if(!f)return;newPhoto=await shrink(f);const u=URL.createObjectURL(newPhoto);urls.push(u);$("#pv").src=u;$("#pv").hidden=false;};
+  $("#fcam").addEventListener("change",pick); $("#fgal").addEventListener("change",pick);
+  $("#sheet").onclick=ev=>{const a=ev.target.closest("[data-act]");if(!a)return;
+    if(a.dataset.act==="close") closeSheet();
+    if(a.dataset.act==="back") scanPhoto?showScan(scanPhoto):editing?showItem(itemId):addToBinder(binderId,itemId);};
+  $("#f").addEventListener("submit",async ev=>{ev.preventDefault();
+    const num=v=>v===""?null:Math.round(parseFloat(v)*100)/100;
+    const id=itemId||newId("i");
+    let dexNums=e.dexNums||[];
+    if(manual){const nm=$("#fpk").value.trim().toLowerCase();const hit=SPECIES.findIndex(([x])=>x.toLowerCase()===nm);dexNums=hit>=0?[hit+1]:[];}
+    const rec={id,binder:binderId,id_:undefined,cardName:manual?$("#fn").value.trim():e.cardName,set:manual?$("#fs").value.trim():e.set,
+      number:manual?$("#fnum").value.trim():e.number,series:manual?"":e.series||"",rarity:manual?$("#frar").value:e.rarity||"",
+      img:manual?"":e.img||"",price:num($("#fp").value),myValue:num($("#fmv").value),notes:$("#fnotes").value.trim(),
+      added:e.added||Date.now(),src:manual?"manual":(e.src||"pokemontcg"),dexNums};
+    delete rec.id_;
+    rec.cardId=manual?null:(e.binder?e.cardId:(e.id||null));
+    if(!manual&&e.prices){rec.prices=e.prices;rec.variant=$("#fv")?$("#fv").value:pickVariant(e.prices,e.variant);rec.usd=usdOf(e.prices,rec.variant);rec.priceUpdated=e.priceUpdated||Date.now();}
+    try{await put("items",rec); if(newPhoto) await put("photos",newPhoto,"i:"+id);}catch(_){return toast("Couldn't save. Is your phone storage full?");}
+    const isNew=!items.has(id); items.set(id,rec);
+    if(view!=="b:"+binderId) setView("b:"+binderId); else {renderGens();render();}
+    showItem(id); toast(isNew?`Added ${rec.cardName} to ${b.name}`:"Saved");
+    if(isNew){const d=dexNums[0];const cols=[...(d?typesOf(d).map(t=>TYPE_COL[t]):[b.color]),"#e2b04e","#f3cf7e","#ffffff"];
+      const n=itemsIn(binderId).length; confetti(cols,n%9===0); if(n%9===0) setTimeout(()=>toast(`Page ${n/9} of ${b.name} is full!`),300);
+      const pk=document.querySelector(`.pocket[data-item="${id}"]`); if(pk){pk.classList.add("pop");pk.addEventListener("animationend",()=>pk.classList.remove("pop"),{once:true});}}
+  });
 }
 
 /* ---------- stats & backup ---------- */
@@ -742,6 +1016,7 @@ function showStats(){
     <div class="row"><button class="btn" data-act="refresh">${refreshing?"Updating…":"Update prices now"}</button></div>
     <div class="field"><label class="label" for="rto">Fixed USD→RM rate</label><input id="rto" type="number" inputmode="decimal" step="0.0001" min="0" placeholder="Blank = live rate" value="${settings.rateOverride??""}"></div>
     <div class="label">By generation</div>${rows}
+    ${binders.size?`<div class="label">My binders</div>${(()=>{const allT=totals([...entries.values(),...items.values()]);const rowsB=[["National Dex",[...entries.values()]],...[...binders.values()].map(b=>[b.name,itemsIn(b.id)])].map(([n,l])=>{const t=totals(l);return `<div class="genrow" style="grid-template-columns:minmax(0,1fr) auto auto"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(n)}</span><span style="font-family:var(--f-mono);font-size:12.5px">${l.length} · ${short(t.worth)}</span><span>${t.both?gainHtml(t.bPaid,t.bVal).replace(/ \([^)]*\)/,""):"—"}</span></div>`;}).join("");return rowsB+`<p class="note">All binders: ${money(allT.paid)} paid, ${money(allT.worth)} value${allT.both?`, ${gainHtml(allT.bPaid,allT.bVal)}`:""}.</p>`;})()}`:""}
     <div class="label">Appearance</div>
     <div class="seg3" role="group" aria-label="Appearance">${["auto","light","dark"].map(t=>`<button data-theme-pick="${t}" aria-pressed="${(settings.theme||"auto")===t}">${t==="auto"?"Auto":t==="light"?"Light":"Dark"}</button>`).join("")}</div>
     <div class="label">Backup</div>
@@ -766,7 +1041,7 @@ async function exportBackup(){
   toast("Preparing backup…");
   const photos=await getAllKV("photos"); const p={};
   for(const k in photos) p[k]=await toB64(photos[k]);
-  const data={app:"dex-binder",version:1,exported:new Date().toISOString(),settings,entries:[...entries.values()],photos:p};
+  const data={app:"dex-binder",version:2,exported:new Date().toISOString(),settings,entries:[...entries.values()],binders:[...binders.values()],items:[...items.values()],photos:p};
   const blob=new Blob([JSON.stringify(data)],{type:"application/json"});
   const name=`dex-binder-backup-${new Date().toISOString().slice(0,10)}.json`;
   const file=new File([blob],name,{type:"application/json"});
@@ -779,15 +1054,18 @@ async function exportBackup(){
 let pending=null;
 $("#restoreFile").addEventListener("change",async ev=>{const f=ev.target.files[0];ev.target.value="";if(!f)return;
   try{ const d=JSON.parse(await f.text()); if(d.app!=="dex-binder"||!Array.isArray(d.entries)) throw 0; pending=d;
-    $("#imp").innerHTML=`<div class="confirm"><p>Replace everything on this phone with the backup from ${new Date(d.exported).toLocaleDateString()} (${d.entries.length} cards)?</p><button class="btn" data-act="cancelimp">Cancel</button><button class="btn primary" data-act="doimp">Restore</button></div>`;
+    $("#imp").innerHTML=`<div class="confirm"><p>Replace everything on this phone with the backup from ${new Date(d.exported).toLocaleDateString()} (${d.entries.length} Dex cards${d.binders&&d.binders.length?`, ${d.binders.length} binders with ${(d.items||[]).length} cards`:""})?</p><button class="btn" data-act="cancelimp">Cancel</button><button class="btn primary" data-act="doimp">Restore</button></div>`;
   }catch(_){ toast("That file isn't a Dex Binder backup."); }});
 async function doRestore(){ const d=pending; if(!d) return;
   try{
-    await tx("entries","readwrite",s=>s.clear()); await tx("photos","readwrite",s=>s.clear());
+    for(const st of ["entries","photos","binders","items"]) await tx(st,"readwrite",s=>s.clear());
     for(const e of d.entries) await put("entries",e);
-    for(const k in d.photos){ const b=await (await fetch(d.photos[k])).blob(); await put("photos",b,+k); }
+    for(const b of d.binders||[]) await put("binders",b);
+    for(const i of d.items||[]) await put("items",i);
+    for(const k in d.photos){ const b=await (await fetch(d.photos[k])).blob(); await put("photos",b,/^\d+$/.test(k)?+k:k); }
     if(d.settings) { settings={...settings,...d.settings}; await put("meta",settings,"settings"); }
-    entries=new Map(d.entries.map(e=>[e.dex,e])); renderGens(); render(); showStats(); toast(`Restored ${d.entries.length} cards`);
+    entries=new Map(d.entries.map(e=>[e.dex,e])); binders=new Map((d.binders||[]).map(b=>[b.id,b])); items=new Map((d.items||[]).map(i=>[i.id,i]));
+    if(view.startsWith("b:")&&!binders.has(view.slice(2))) view="shelf"; setView(view,true); showStats(); toast(`Restored ${d.entries.length} cards`);
   }catch(_){ toast("Restore failed partway. Try the file again."); }
 }
 
