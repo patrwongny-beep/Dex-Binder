@@ -254,6 +254,21 @@ dl.facts dd{margin:0;font-weight:600;font-variant-numeric:tabular-nums;min-width
 .genrow span:last-child{text-align:right;color:var(--muted);font-family:var(--f-mono);font-size:12.5px}
 .note{font-size:14px;color:var(--muted);margin:0}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(86px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--felt);padding:11px 16px;border-radius:12px;z-index:40;font-weight:600;width:max-content;max-width:calc(100vw - 32px)}
+/* in-app camera */
+.cam{position:fixed;inset:0;z-index:30;background:#000;color:#fff;overflow:hidden}
+.cam video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.cam .frame{position:absolute;left:50%;top:46%;translate:-50% -50%;width:min(84vw,calc((100dvh - 250px) * 63 / 88));aspect-ratio:63/88;border-radius:4.5%/3.2%;box-shadow:0 0 0 100vmax rgb(0 0 0 / .58);outline:2px solid rgb(255 255 255 / .9)}
+.cam .numzone{position:absolute;left:3%;right:3%;bottom:1.5%;height:9%;border:2px dashed #fff;border-radius:8px;box-shadow:0 0 0 1.5px rgb(0 0 0 / .6),inset 0 0 0 1.5px rgb(0 0 0 / .6)}
+.cam .numzone span{position:absolute;left:50%;top:-30px;translate:-50% 0;font:600 12px/1 var(--f-mono);letter-spacing:.08em;color:#fff;white-space:nowrap;background:rgb(0 0 0 / .65);padding:5px 8px;border-radius:6px}
+.cam .ctop{position:relative;display:flex;align-items:center;gap:12px;padding:max(14px,env(safe-area-inset-top,0px)) 16px 0}
+.cam .ctop p{margin:0;flex:1;font-size:14px;line-height:1.35;text-shadow:0 1px 3px #000}
+.cam .ctop .iconbtn{background:rgb(0 0 0 / .45);border-color:transparent;color:#fff}
+.cam .cbot{position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:center;padding:0 16px max(26px,env(safe-area-inset-bottom,0px))}
+.cam .shutter{width:76px;height:76px;border-radius:50%;border:5px solid #fff;background:rgb(255 255 255 / .22)}
+.cam .shutter:active{background:#fff}
+.cam .shutter:disabled{opacity:.4}
+.cam .cmsg{position:absolute;left:16px;right:16px;top:38%;text-align:center;display:grid;gap:16px;justify-items:center}
+.cam .cmsg p{margin:0;font-size:15px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -600,7 +615,7 @@ document.addEventListener("keydown",e=>{const sh=$("#sheet");if(sh.hidden)return
     const a=f[0],z=f[f.length-1];if(e.shiftKey&&document.activeElement===a){e.preventDefault();z.focus();}else if(!e.shiftKey&&document.activeElement===z){e.preventDefault();a.focus();}}});
 function closeSheet(){$("#sheet").hidden=true;$("#scrim").hidden=true;document.body.style.overflow="";freeUrls();restoreFocus();if(history.state&&history.state.sheet)history.back();}
 $("#scrim").addEventListener("click",closeSheet);
-window.addEventListener("popstate",e=>{if(!$("#sheet").hidden){$("#sheet").hidden=true;$("#scrim").hidden=true;document.body.style.overflow="";freeUrls();restoreFocus();return;}
+window.addEventListener("popstate",e=>{if(skipPop){skipPop=false;return;} if(camClose){camClose();return;}if(!$("#sheet").hidden){$("#sheet").hidden=true;$("#scrim").hidden=true;document.body.style.overflow="";freeUrls();restoreFocus();return;}
   const v=(e.state&&e.state.view)||"shelf"; if(v!==view) setView(v,true);});
 function pushSheet(){ if(!(history.state&&history.state.sheet)) history.pushState({sheet:1,view},""); }
 const closeBtn=`<button class="iconbtn" data-act="close" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>`;
@@ -753,25 +768,55 @@ async function getOcr(){
 function crop(bmp,x,y,w,h,scale){const c=document.createElement("canvas");c.width=Math.round(w*scale);c.height=Math.round(h*scale);const g=c.getContext("2d");g.imageSmoothingQuality="high";g.drawImage(bmp,x,y,w,h,0,0,c.width,c.height);return c;}
 const NAMES=SPECIES.map(([nm],i)=>({n:i+1,k:nm.toUpperCase().replace(/[^A-Z0-9]/g,"")})).filter(x=>x.k.length>=3).sort((a,b)=>b.k.length-a.k.length);
 function parseScan(text){
-  const T=text.toUpperCase().replace(/[Oo](?=\d)|(?<=\d)[Oo]/g,"0");
-  let num=null,total=null;
-  const re=/\b([A-Z]{0,4}\d{1,3})\s*[\/|\\]\s*([A-Z]{0,3}\d{2,3})\b/g; let m, best=null;
-  while((m=re.exec(T))){const t=parseInt(m[2].replace(/\D/g,""),10); if(t>=10&&t<=400){best=m;break;}}
-  if(best){num=best[1];total=best[2];}
+  const T=text.toUpperCase();
+  const dig=s=>s.replace(/O/g,"0").replace(/I/g,"1").replace(/B/g,"8");
+  let num=null,total=null,m;
+  const re=/(?<![A-Z0-9])([A-Z]{0,4}?)([0-9OIB]{1,3})\s*[\/\\|]\s*([A-Z]{0,4}?)([0-9OIB]{2,3})(?![0-9])/g;
+  while((m=re.exec(T))){const t=parseInt(dig(m[4]),10); if(t>=10&&t<=400){num=m[1]+dig(m[2]);total=m[3]+dig(m[4]);break;}}
+  if(!num){const p=/\b(SWSH|SVP|SV|SM|XY|BW)\s?(\d{2,3})\b/.exec(T); if(p) num=p[1]+p[2];}
   const flat=T.replace(/[^A-Z0-9]/g,"");
   const hit=NAMES.find(x=>flat.includes(x.k));
   return {num,total,dex:hit?hit.n:null};
 }
+// Clean up a region for OCR: greyscale, stretch contrast (mode 0) or black/white threshold (mode 1), dark text on light.
+function prep(bmp,x,y,w,h,k,mode){
+  const c=crop(bmp,x,y,w,h,k), g=c.getContext("2d",{willReadFrequently:true});
+  const d=g.getImageData(0,0,c.width,c.height), p=d.data, n=p.length/4, L=new Uint8ClampedArray(n), hist=new Uint32Array(256);
+  for(let i=0;i<n;i++){const v=(p[i*4]*299+p[i*4+1]*587+p[i*4+2]*114)/1000|0; L[i]=v; hist[v]++;}
+  let lo=0,hi=255,acc=0; for(let v=0;v<256;v++){acc+=hist[v]; if(acc>n*.02){lo=v;break;}}
+  acc=0; for(let v=255;v>=0;v--){acc+=hist[v]; if(acc>n*.02){hi=v;break;}}
+  const span=Math.max(1,hi-lo); let thr=128;
+  if(mode){let sum=0;for(let v=0;v<256;v++)sum+=v*hist[v]; let sB=0,wB=0,best=-1;
+    for(let v=0;v<256;v++){wB+=hist[v]; if(!wB) continue; const wF=n-wB; if(!wF) break; sB+=v*hist[v];
+      const diff=sB/wB-(sum-sB)/wF, between=wB*wF*diff*diff; if(between>best){best=between;thr=v;}}}
+  const val=i=>mode?(L[i]>thr?255:0):Math.max(0,Math.min(255,Math.round((L[i]-lo)*255/span)));
+  let dark=0; for(let i=0;i<n;i++) if(val(i)<128) dark++;
+  const inv=dark>n*.5;
+  for(let i=0;i<n;i++){let v=val(i); if(inv) v=255-v; p[i*4]=p[i*4+1]=p[i*4+2]=v;}
+  g.putImageData(d,0,0); return c;
+}
 async function readCard(blob,onStep){
   const bmp=await createImageBitmap(blob); const W=bmp.width,H=bmp.height;
   const w=await getOcr(); onStep("Reading the card…");
-  const k=Math.min(1,1600/Math.max(W,H));
-  const full=await w.recognize(crop(bmp,0,0,W,H,k));
+  const full=await w.recognize(crop(bmp,0,0,W,H,Math.min(1,1600/Math.max(W,H))));
+  const texts=[full.data.text], b=parseScan(full.data.text);
   onStep("Reading the card number…");
-  const strip=await w.recognize(crop(bmp,0,Math.round(H*.8),W,Math.round(H*.2),Math.min(2.5,2400/W)));
-  const text=full.data.text+"\n"+strip.data.text;
-  const a=parseScan(strip.data.text), b=parseScan(text);
-  return {text:text.replace(/\s+/g," ").trim().slice(0,240), num:a.num||b.num, total:a.total||b.total, dex:b.dex};
+  let a={};
+  await w.setParameters({tessedit_char_whitelist:"0123456789/ABCDEFGHIJKLMNOPQRSTUVWXYZ",tessedit_pageseg_mode:"11"});
+  try{
+    // The number sits in the bottom strip: bottom-left on newer cards, bottom-right on older ones.
+    const sy=Math.round(H*.84), sh=H-sy, k=Math.min(3,Math.max(1,3125/H));
+    outer: for(const mode of [0,1]) for(const [l,r] of [[0,.56],[.44,1],[0,1]]){
+      const x=Math.round(W*l), ww=Math.round(W*(r-l));
+      const t=(await w.recognize(prep(bmp,x,sy,ww,sh,k,mode))).data.text; texts.push(t);
+      const p=parseScan(t); if(p.num&&p.total){a=p;break outer;} if(p.num&&!a.num) a=p;
+    }
+    if(!a.num&&!b.num){ // photo not framed tightly: search the whole picture
+      const t=(await w.recognize(prep(bmp,0,0,W,H,Math.min(1.5,2400/W),0))).data.text; texts.push(t);
+      const p=parseScan(t); if(p.num) a=p; }
+  } finally { await w.setParameters({tessedit_char_whitelist:"",tessedit_pageseg_mode:"3"}); }
+  const text=texts.join("\n");
+  return {text:text.replace(/\s+/g," ").trim().slice(0,240), num:a.num||b.num, total:a.total||b.total, dex:b.dex||parseScan(text).dex};
 }
 async function lookupScan({num,total,dex}){
   const clean=String(num).toUpperCase().replace(/^([A-Z]*)0+(\d)/,"$1$2");
@@ -779,6 +824,7 @@ async function lookupScan({num,total,dex}){
   const go=async q=>{const r=await fetch(`https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(q)}&pageSize=60&orderBy=-set.releaseDate&select=id,name,number,rarity,set,images,tcgplayer,nationalPokedexNumbers`);if(!r.ok)throw new Error("lookup");return (await r.json()).data;};
   let list=dex?await go(`number:"${clean}" nationalPokedexNumbers:${dex}`):[];
   if(!list.length) list=await go(`number:"${clean}"`);
+  if(!list.length&&/^[A-Z]+\d+$/.test(clean)&&!/^(TG|GG|SV|SWSH|SM|XY|BW|RC|SH)\d/.test(clean)) list=await go(`number:"${clean.replace(/^[A-Z]+/,"")}"`);
   {const f=list.filter(c=>String(c.number).toUpperCase()===clean); if(f.length) list=f;}
   if(tot){const t=tot.replace(/\D/g,""), pre=tot.replace(/\d/g,"");
     const f=list.filter(c=>pre?String(c.number).toUpperCase().startsWith(pre)||c.set.printedTotal==t:c.set.printedTotal==t);
@@ -787,10 +833,67 @@ async function lookupScan({num,total,dex}){
   if(Date.now()-(settings.rateUpdated||0)>12*3600*1000) await refreshRate();
   return list.map(mapTcg);
 }
+/* ---------- in-app camera with card outline (auto-crops to the outline) ---------- */
+const CAM_OK=!!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia);
+let camClose=null, skipPop=false;
+function liveCapture(fallbackInput){
+  return new Promise(resolve=>{
+    const el=document.createElement("div"); el.className="cam"; el.setAttribute("role","dialog"); el.setAttribute("aria-modal","true"); el.setAttribute("aria-label","Camera");
+    el.innerHTML=`<video playsinline muted autoplay></video>
+      <div class="frame" aria-hidden="true"><div class="numzone"><span>CARD NUMBER HERE</span></div></div>
+      <div class="ctop"><p>Fit the card inside the outline, number in the dashed box. Hold still until it's sharp.</p><button class="iconbtn" data-c="close" aria-label="Close camera"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+      <div class="cbot"><button class="shutter" data-c="snap" aria-label="Take photo" disabled></button></div>`;
+    document.body.appendChild(el);
+    const video=el.querySelector("video"); let stream=null, done=false;
+    history.pushState({...(history.state||{}),cam:1},"");
+    const onKey=e=>{if(e.key==="Escape"){e.preventDefault();e.stopImmediatePropagation();finish(null);}};
+    document.addEventListener("keydown",onKey,true);
+    const finish=(file,fromPop)=>{ if(done) return; done=true; camClose=null;
+      if(stream) stream.getTracks().forEach(t=>t.stop());
+      document.removeEventListener("keydown",onKey,true); el.remove();
+      if(!fromPop){ skipPop=true; history.back(); }
+      resolve(file); };
+    camClose=()=>finish(null,true);
+    const failed=msg=>{ el.querySelector(".frame").hidden=true; el.querySelector(".cbot").hidden=true;
+      const m=document.createElement("div"); m.className="cmsg";
+      m.innerHTML=`<p>${esc(msg)}</p>${fallbackInput?'<button class="btn primary" data-c="native">Use phone camera app</button>':""}`;
+      el.appendChild(m); };
+    const start=async()=>{
+      try{ stream=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:"environment"},width:{ideal:3840},height:{ideal:2160}}}); }
+      catch(err){ return failed(err&&err.name==="NotAllowedError"?"Camera access is blocked for Dex Binder. Allow it in Chrome's site settings, or use your phone's camera app.":"Couldn't start the camera."); }
+      if(done){ stream.getTracks().forEach(t=>t.stop()); return; }
+      const tr=stream.getVideoTracks()[0];
+      try{ const c=tr.getCapabilities?tr.getCapabilities():{}; if((c.focusMode||[]).includes("continuous")) await tr.applyConstraints({advanced:[{focusMode:"continuous"}]}); }catch(_){}
+      video.srcObject=stream; await video.play().catch(()=>{});
+      el.querySelector(".shutter").disabled=false; };
+    const snap=()=>{
+      const vw=video.videoWidth, vh=video.videoHeight; if(!vw||!vh) return;
+      const R=video.getBoundingClientRect(), F=el.querySelector(".frame").getBoundingClientRect();
+      const s=Math.max(R.width/vw,R.height/vh), ox=R.left+(R.width-vw*s)/2, oy=R.top+(R.height-vh*s)/2, pad=F.width*.03;
+      let x=(F.left-pad-ox)/s, y=(F.top-pad-oy)/s, w=(F.width+2*pad)/s, h=(F.height+2*pad)/s;
+      x=Math.max(0,x); y=Math.max(0,y); w=Math.min(vw-x,w); h=Math.min(vh-y,h);
+      const c=document.createElement("canvas"); c.width=Math.round(w); c.height=Math.round(h);
+      c.getContext("2d").drawImage(video,x,y,w,h,0,0,c.width,c.height);
+      el.querySelector(".shutter").disabled=true;
+      c.toBlob(b=>finish(b?new File([b],"card.jpg",{type:"image/jpeg"}):null),"image/jpeg",.95); };
+    el.addEventListener("click",e=>{const a=e.target.closest("[data-c]"); if(!a) return;
+      if(a.dataset.c==="close") finish(null);
+      else if(a.dataset.c==="snap") snap();
+      else if(a.dataset.c==="native"){ finish(null); fallbackInput.click(); }});
+    start();
+  });
+}
+// Every "Take photo" button opens the in-app camera; the photo is handed to the same input as before.
+document.addEventListener("click",e=>{
+  if(!CAM_OK||e.target.matches("input")) return;
+  const lab=e.target.closest("label"); const inp=lab&&lab.querySelector('input[type=file][capture]'); if(!inp) return;
+  e.preventDefault(); e.stopPropagation();
+  liveCapture(inp).then(f=>{ if(!f) return; const dt=new DataTransfer(); dt.items.add(f); inp.files=dt.files; inp.dispatchEvent(new Event("change",{bubbles:true})); });
+},true);
 $("#scanBtn").addEventListener("click",()=>{pushSheet();showScan();});
 function showScan(blob){
   openSheet(`<div class="sheet-head"><h2 id="sheetTitle"><small>SCAN</small>Scan a card</h2>${closeBtn}</div><div class="sheet-body">
-    <p class="note">Photograph the card straight on, filling the frame, with the number at the bottom in focus.</p>
+    <p class="note">Tap <b>Take photo</b>, fit the card inside the outline and keep the card number in the dashed box.</p>
     <div class="row"><label class="btn primary" tabindex="0">Take photo<input id="scam" type="file" accept="image/*" capture="environment" hidden></label>
     <label class="btn" tabindex="0">From gallery<input id="sgal" type="file" accept="image/*" hidden></label></div>
     <img id="spv" class="scanpv" alt="Your card photo" hidden>
@@ -822,7 +925,7 @@ function showScan(blob){
     photo=await shrink(b); showPhoto(photo); list=[]; drawResults(); $("#sread").hidden=true;
     st("Loading text recognition (first time only)…",true);
     let r;
-    try{ r=await readCard(photo,m=>st(m,true)); }
+    try{ r=await readCard(b,m=>st(m,true)); }
     catch(_){ st(OCR_FAIL); $("#sman").hidden=false; return; }
     $("#sread").hidden=false; $("#sread").textContent=`Read: ${r.num?r.num+(r.total?"/"+r.total:""):"no number"}${r.dex?" · "+SPECIES[r.dex-1][0]:""}`;
     find(r);
