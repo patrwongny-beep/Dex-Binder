@@ -417,8 +417,7 @@ async function refreshPrices(manual){
     const chunk=list.slice(i,i+40);
     const q="("+chunk.map(e=>`id:"${cid(e)}"`).join(" OR ")+")";
     try{
-      const r=await fetch(`https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(q)}&pageSize=250&select=id,tcgplayer`);
-      if(!r.ok) throw 0; const j=await r.json(); const byId=new Map(j.data.map(c=>[c.id,c]));
+      const j=await ptcgFetch(`https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(q)}&pageSize=60&select=id,tcgplayer`); const byId=new Map(j.data.map(c=>[c.id,c]));
       for(const e of chunk){const c=byId.get(cid(e)); if(!c) continue; const pr=c.tcgplayer?.prices||null;
         e.prices=pr; e.variant=pickVariant(pr,e.variant); e.usd=usdOf(pr,e.variant); e.priceUpdated=Date.now();
         await put(e.binder?"items":"entries",e); updated++;}
@@ -710,23 +709,43 @@ async function withPrices(c){
 }
 // How well a card fits whatever the camera managed to read (number, set total, set code).
 function clueScore(c,text){
-  const T=String(text||"").toUpperCase().replace(/[OQ](?=\d)|(?<=\d)[OQ]/g,"0");
+  const T=String(text||"").toUpperCase().replace(/[OQ](?=\d)|(?<=\d)[OQ]/g,"0"), TS=T.replace(/\s+/g,"");
   const runs=(T.match(/\d+/g)||[]).map(d=>d.replace(/^0+(?=\d)/,""));
-  const n=normNo(c.number).replace(/^[A-Z]+/,""); let s=0;
-  const tot=String(c.number||"").split("/")[1], totHit=!!(tot&&tot!=="?"&&runs.includes(tot.replace(/^0+(?=\d)/,"")));
-  const code=String(c.setCode||"").toUpperCase(), codeHit=!!(code&&new RegExp(`(^|[^A-Z])${code}([^A-Z]|$)`).test(T));
-  if(n){ if(runs.includes(n)) s+=n.length>=3||totHit||codeHit?5:1; else if(n.length>=3&&runs.some(d=>d.startsWith(n))) s+=3; }
+  const full=normNo(c.number), n=full.replace(/^[A-Z]+/,""), pre=full.slice(0,full.length-n.length); let s=0;
+  const tot=String(c.number||"").split("/")[1], t0=tot&&tot!=="?"?tot.replace(/^[A-Z]*0*(?=\d)/,""):"";
+  const totHit=!!(t0&&runs.includes(t0));
+  const code=String(c.setCode||"").toUpperCase(), codeHit=!!(code&&new RegExp(`(^|[^A-Z0-9])${code}${code.length>=3?"":"([^A-Z]|$)"}`).test(T));
+  if(pre&&n&&TS.includes(pre+n)) s+=6;                                   // TG10, SWSH050…
+  else if(n){
+    if(t0&&runs.some(d=>d.includes(n+t0))) s+=7;                          // 132/128 read without the slash
+    else if(runs.includes(n)) s+=n.length>=3||totHit||codeHit?5:1;
+    else if(n.length>=3&&runs.some(d=>d.startsWith(n))) s+=3; }
   if(totHit) s+=2; if(codeHit) s+=3;
   return s;
 }
 
-const mapTcg=c=>({id:c.id,cardName:c.name,number:`${c.number}/${c.set.printedTotal??"?"}`,set:c.set.name,series:c.set.series,rarity:c.rarity||"",released:c.set.releaseDate||"",img:c.images?.small||"",imgLarge:c.images?.large||"",src:"pokemontcg",setCode:String(c.set.ptcgoCode||"").toUpperCase(),prices:c.tcgplayer?.prices||null,priceUpdated:Date.now(),dexNums:c.nationalPokedexNumbers||[]});
+const mapTcg=c=>({id:c.id,cardName:c.name,number:`${c.number}/${c.set.printedTotal??"?"}`,set:c.set.name,series:c.set.series,rarity:c.rarity||"",released:c.set.releaseDate||"",img:c.images?.small||"",imgLarge:c.images?.large||"",src:"pokemontcg",setCode:String(c.set.ptcgoCode||"").toUpperCase(),prices:c.tcgplayer?.prices||null,priceUpdated:Date.now(),dexNums:c.nationalPokedexNumbers||[],hp:c.hp?+c.hp:null});
 const cardCache=new Map();
+// pokemontcg.io times out on big requests (250 cards at once fails for popular Pokémon), so ask in pages of 60 and retry once.
+async function ptcgFetch(url,tries=2){
+  for(let i=0;i<tries;i++){
+    try{ const r=await fetch(url); if(r.ok) return await r.json(); if(r.status>=400&&r.status<500&&r.status!==429) throw Object.assign(new Error("ptcg"),{fatal:true}); }
+    catch(e){ if(e.fatal||i===tries-1) throw e; }
+    await new Promise(res=>setTimeout(res,700*(i+1)));
+  }
+  throw new Error("ptcg");
+}
+async function ptcgAll(q,select){
+  const base=`https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(q)}&orderBy=-set.releaseDate&pageSize=60&select=${select}`;
+  const first=await ptcgFetch(base+"&page=1");
+  const pages=Math.min(8,Math.ceil((first.totalCount||0)/60));
+  const rest=await Promise.all(Array.from({length:Math.max(0,pages-1)},(_,i)=>ptcgFetch(base+"&page="+(i+2)).catch(()=>({data:[]}))));
+  return [first,...rest].flatMap(j=>j.data||[]);
+}
 async function searchCards(n){
   if(cardCache.has(n)) return cardCache.get(n);
   const [a,b]=await Promise.allSettled([
-    (async()=>{const r=await fetch(`https://api.pokemontcg.io/v2/cards?q=nationalPokedexNumbers:${n}&orderBy=-set.releaseDate&pageSize=250&select=id,name,number,rarity,set,images,tcgplayer,nationalPokedexNumbers`);
-      if(!r.ok) throw 0; return (await r.json()).data.map(mapTcg);})(),
+    (async()=>(await ptcgAll(`nationalPokedexNumbers:${n}`,"id,name,number,rarity,set,images,tcgplayer,nationalPokedexNumbers,hp")).map(mapTcg))(),
     (async()=>(await mapTdx(await tdxGet(`/cards?dexId=eq:${n}`),n)).reverse())()]);
   if(a.status==="rejected"&&b.status==="rejected") throw new Error("search failed");
   const out=mergeCards(a.status==="fulfilled"?a.value:[], b.status==="fulfilled"?b.value:[]);
@@ -852,40 +871,65 @@ function prep(bmp,x,y,w,h,k,mode){
   for(let i=0;i<n;i++){let v=val(i); if(inv) v=255-v; p[i*4]=p[i*4+1]=p[i*4+2]=v;}
   g.putImageData(d,0,0); return c;
 }
+// Pokémon name from the card title: forgiving match ("SNOR AX" -> Snorlax), first name in reading order wins.
+function lev(a,b){ if(Math.abs(a.length-b.length)>2) return 9; const d=Array.from({length:a.length+1},(_,i)=>i);
+  for(let j=1;j<=b.length;j++){ let prev=d[0]; d[0]=j; for(let i=1;i<=a.length;i++){ const t=d[i]; d[i]=Math.min(d[i]+1,d[i-1]+1,prev+(a[i-1]===b[j-1]?0:1)); prev=t; } }
+  return d[a.length]; }
+const NAME_KEYS=SPECIES.map(([nm],i)=>({n:i+1,k:nm.toUpperCase().replace(/[^A-Z]/g,"")})).filter(x=>x.k.length>=3);
+function titleDex(text){
+  const toks=String(text||"").toUpperCase().split(/[^A-Z]+/).filter(t=>t.length>=2);
+  for(let i=0;i<toks.length;i++){
+    for(const t of [toks[i], toks[i]+(toks[i+1]||"")]){
+      if(t.length<3) continue;
+      const lim=t.length>=7?2:t.length>=5?1:0; let best=null,bd=9;
+      for(const x of NAME_KEYS){ if(Math.abs(x.k.length-t.length)>lim) continue; const dd=lev(t,x.k); if(dd<bd||(dd===bd&&best&&x.k.length>best.k.length)){bd=dd;best=x;} }
+      if(best&&bd<=lim) return best.n;
+    }
+  }
+  return null; }
+function earliestDex(text){ const flat=String(text||"").toUpperCase().replace(/[^A-Z0-9]/g,""); let best=null,bi=1e9;
+  for(const x of NAMES){ const i=flat.indexOf(x.k); if(i>=0&&(i<bi||(i===bi&&x.k.length>best.k.length))){bi=i;best=x;} } return best?best.n:null; }
+const hpOf=text=>{const m=/HP\s*([1-3]?\d0)\b/i.exec(String(text||""))||/\b([3-9]0|[1-3]\d0)\b/.exec(String(text||"")); return m?+m[1]:null;};
 async function readCard(blob,onStep){
   const bmp=await createImageBitmap(blob); const W=bmp.width,H=bmp.height;
-  const w=await getOcr(); onStep("Reading the card…");
+  const w=await getOcr(); onStep("Reading the card name…");
+  // Title band (top quarter): the card's own name and HP.
+  // Title band at full sharpness, sparse-text mode; then the whole card (for ability text and as a fallback).
+  await w.setParameters({tessedit_pageseg_mode:"11"});
+  let title=(await w.recognize(prep(bmp,0,0,W,Math.round(H*.25),Math.min(1.4,2200/W),0))).data.text;
+  let dex=titleDex(title);
+  if(!dex){ const t2=(await w.recognize(prep(bmp,0,0,W,Math.round(H*.18),Math.min(2,2600/W),0))).data.text; title+="\n"+t2; dex=titleDex(t2); }
+  await w.setParameters({tessedit_pageseg_mode:"3"});
   const full=await w.recognize(crop(bmp,0,0,W,H,Math.min(1,1600/Math.max(W,H))));
   const texts=[full.data.text], b=parseScan(full.data.text);
+  dex=dex||earliestDex(title)||titleDex(full.data.text.split("\n").slice(0,4).join(" "))||earliestDex(full.data.text);
   onStep("Reading the card number…");
   let a={};
   await w.setParameters({tessedit_char_whitelist:"0123456789/ABCDEFGHIJKLMNOPQRSTUVWXYZ",tessedit_pageseg_mode:"11"});
   try{
-    // The number sits in the bottom strip: bottom-left on newer cards, bottom-right on older ones.
     // Several small passes over the bottom of the card, from most to least likely to hold the number. Stops at the first clear read.
-    // [top of strip, left, right, zoom (relative to a 2576px-tall photo), page mode, clean-up mode]
+    // [top of strip, bottom of strip, left, right, zoom (relative to a 2576px-tall photo), page mode, clean-up mode]
     const K=c=>Math.min(3,Math.max(1,c*2576/H));
-    const passes=[[.88,0,.35,1.6,"11",0],[.88,0,.35,1.2,"6",0],[.84,0,.35,1.2,"11",0],[.88,.62,1,1.6,"11",0],
-      [.84,0,.56,1.2,"11",0],[.84,.44,1,1.2,"11",0],[.84,0,.56,1.2,"11",1],[.84,.44,1,1.2,"11",1]];
+    const passes=[[.88,1,0,.35,1.6,"11",0],[.88,1,0,.35,1.2,"6",0],[.84,1,0,.35,1.2,"11",0],[.88,1,.62,1,1.6,"11",0],
+      [.84,1,0,.56,1.2,"11",0],[.84,1,.44,1,1.2,"11",0],[.84,1,0,.56,1.2,"11",1]];
+    // Photo taken loosely (e.g. card in a binder page): the number line can sit higher up, so sweep strips across the lower part.
+    for(const t of [.70,.74,.78,.82,.86,.90]) passes.push([t,t+.07,0,.45,1.2,"11",0],[t,t+.07,0,.45,1.2,"6",0]);
     let psm="11";
-    for(const [top,l,r,c,mode,clean] of passes){
+    for(const [top,bot,l,r,c,mode,clean] of passes){
       if(mode!==psm){ psm=mode; await w.setParameters({tessedit_pageseg_mode:mode}); }
-      const y=Math.round(H*top), x=Math.round(W*l), ww=Math.round(W*(r-l));
-      const t=(await w.recognize(prep(bmp,x,y,ww,H-y,K(c),clean))).data.text; texts.push(t);
+      const y=Math.round(H*top), x=Math.round(W*l), ww=Math.round(W*(r-l)), hh=Math.round(H*Math.min(1,bot))-y;
+      const t=(await w.recognize(prep(bmp,x,y,ww,hh,K(c),clean))).data.text; texts.push(t);
       const p=parseScan(t); if(p.num&&(p.total||p.code)){a=p;break;} if(p.num&&!a.num) a=p;
     }
-    if(!a.num&&!b.num){ // photo not framed tightly: search the whole picture
-      const t=(await w.recognize(prep(bmp,0,0,W,H,Math.min(1.5,2400/W),0))).data.text; texts.push(t);
-      const p=parseScan(t); if(p.num) a=p; }
   } finally { await w.setParameters({tessedit_char_whitelist:"",tessedit_pageseg_mode:"3"}); }
   const text=texts.join("\n");
   const all=parseScan(text);
-  return {text, clues:texts.slice(1).join("\n"), num:a.num||b.num||all.num, total:a.total||b.total, code:a.code||b.code||all.code, dex:b.dex||all.dex};
+  return {text, clues:texts.slice(1).join("\n"), hp:hpOf(title), num:a.num||b.num||all.num, total:a.total||b.total, code:a.code||b.code||all.code, dex:dex||b.dex||all.dex};
 }
 async function lookupScan({num,total,dex,code}){
   const clean=String(num).toUpperCase().replace(/^([A-Z]*)0+(\d)/,"$1$2");
   const tot=total?String(total).toUpperCase().replace(/^([A-Z]*)0+(\d)/,"$1$2"):null;
-  const go=async q=>{const r=await fetch(`https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(q)}&pageSize=60&orderBy=-set.releaseDate&select=id,name,number,rarity,set,images,tcgplayer,nationalPokedexNumbers`);if(!r.ok)throw new Error("lookup");return (await r.json()).data;};
+  const go=async q=>(await ptcgFetch(`https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(q)}&pageSize=60&orderBy=-set.releaseDate&select=id,name,number,rarity,set,images,tcgplayer,nationalPokedexNumbers,hp`)).data;
   const fromPtcg=async()=>{
     let list=dex?await go(`number:"${clean}" nationalPokedexNumbers:${dex}`):[];
     if(!list.length) list=await go(`number:"${clean}"`);
@@ -1017,9 +1061,9 @@ function showScan(blob){
   const st=(m,busy)=>{$("#sst").hidden=false;$("#sst").innerHTML=(busy?'<span class="spin"></span>':"")+esc(m);};
   const showPhoto=b=>{const u=URL.createObjectURL(b);urls.push(u);$("#spv").src=u;$("#spv").hidden=false;};
   const drawResults=()=>{$("#sres").innerHTML=list.map(c=>`<button class="res${c.best?" best":""}" data-id="${esc(c.id)}"><img loading="lazy" src="${esc(c.img)}" alt="">${c.best?'<i class="tag">Best match</i>':""}<b>${esc(c.cardName)}</b><span>${esc(c.set)} · ${esc(c.number)}${c.rarity?`<br>${badge(c.rarity)} ${esc(rLabel(c.rarity))}`:""}</span>${(()=>{const u=usdOf(c.prices,pickVariant(c.prices));return u!=null?`<span class="mk">${toRM(u)!=null?money(toRM(u)):usd(u)}</span>`:"";})()}</button>`).join("");};
-  let clues="";
+  let clues="", hpSeen=null;
   const find=async q=>{
-    if(q.clues!=null) clues=q.clues;
+    if(q.clues!=null) clues=q.clues; if(q.hp) hpSeen=q.hp;
     const nm=q.dex?SPECIES[q.dex-1][0]:"";
     if(q.num){ $("#snum").value=q.num; $("#stot").value=q.total||""; }
     if(q.dex) $("#sname").value=nm;
@@ -1035,9 +1079,9 @@ function showScan(blob){
     st(`Finding ${nm} cards…`,true);
     let all=[]; try{ all=await searchCards(q.dex); }catch(_){ st("Couldn't reach the card database. Check your connection and try again."); return; }
     const hint=`${clues} ${q.code||""} ${q.num||""} ${q.total||""}`;
-    list=all.map((c,i)=>{const v=clueScore(c,hint);return {c,i,s:v>=3?v:0};}).sort((x,y)=>y.s-x.s||x.i-y.i).map(x=>x.s>=3?{...x.c,best:true}:x.c);
+    list=all.map((c,i)=>{const v=clueScore(c,hint);return {c,i,v,s:(v>=3?v*10:0)+(hpSeen&&c.hp===hpSeen?5:0)};}).sort((x,y)=>y.s-x.s||x.i-y.i).map(x=>x.v>=3?{...x.c,best:true}:x.c);
     const top=list.filter(c=>c.best).length;
-    st(!list.length?`No ${nm} cards found. Enter it by hand.`:top?`${top===1?"Best match first":"Best matches first"}, then all ${list.length} ${nm} cards. Tap yours.`:`Couldn't read the number clearly. Here are all ${list.length} ${nm} cards, newest first. Tap yours.`);
+    st(!list.length?`No ${nm} cards found. Enter it by hand.`:top?`${top===1?"Best match first":"Best matches first"}, then all ${list.length} ${nm} cards. Tap yours.`:`Couldn't read the number clearly. Here are all ${list.length} ${nm} cards${hpSeen?` (HP ${hpSeen} first)`:", newest first"}. Tap yours.`);
     drawResults();
   };
   const run=async b=>{
@@ -1113,8 +1157,7 @@ async function nameSearch(text){
   const safe=t.replace(/["\\]/g,"");
   const q=/\s/.test(safe)?`name:"${safe}*"`:`name:${safe}*`;
   const [a,b]=await Promise.allSettled([
-    (async()=>{const r=await fetch(`https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(q)}&orderBy=-set.releaseDate&pageSize=60&select=id,name,number,rarity,set,images,tcgplayer,nationalPokedexNumbers`);
-      if(!r.ok) throw new Error("search"); return (await r.json()).data.map(mapTcg);})(),
+    (async()=>(await ptcgFetch(`https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(q)}&orderBy=-set.releaseDate&pageSize=60&select=id,name,number,rarity,set,images,tcgplayer,nationalPokedexNumbers,hp`)).data.map(mapTcg))(),
     (async()=>(await mapTdx(await tdxGet(`/cards?name=${encodeURIComponent(safe)}`))).reverse().slice(0,80))()]);
   if(a.status==="rejected"&&b.status==="rejected") throw new Error("search");
   if(Date.now()-(settings.rateUpdated||0)>12*3600*1000) await refreshRate();
