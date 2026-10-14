@@ -836,6 +836,29 @@ async function lookupScan({num,total,dex}){
 /* ---------- in-app camera with card outline (auto-crops to the outline) ---------- */
 const CAM_OK=!!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia);
 let camClose=null, skipPop=false;
+// Samsung and other multi-lens phones can hand the page a wide-angle lens with no autofocus.
+// Pick the back camera that reports continuous autofocus (main lens first) and remember it.
+const CAM_KEY="dexbinder-cam";
+async function openBackCamera(){
+  const gum=id=>navigator.mediaDevices.getUserMedia({audio:false,video:{...(id?{deviceId:{exact:id}}:{facingMode:{ideal:"environment"}}),width:{ideal:3840},height:{ideal:2160}}});
+  const caps=s=>{try{const t=s.getVideoTracks()[0];return (t.getCapabilities&&t.getCapabilities())||{};}catch(_){return {};}};
+  const focuses=s=>(caps(s).focusMode||[]).includes("continuous");
+  const stop=s=>{if(s) s.getTracks().forEach(t=>t.stop());};
+  const remember=id=>{try{localStorage.setItem(CAM_KEY,id);}catch(_){}};
+  let saved=null; try{saved=localStorage.getItem(CAM_KEY);}catch(_){}
+  if(saved){ try{const s=await gum(saved); if(focuses(s)) return s; stop(s);}catch(_){} }
+  const first=await gum(null); // also asks for permission, which unlocks the camera names
+  if(!("focusMode" in caps(first))) return first; // this phone doesn't report focus: nothing to choose between
+  const firstId=first.getVideoTracks()[0].getSettings().deviceId;
+  let devs=[]; try{devs=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==="videoinput"&&!/front|user|selfie/i.test(d.label));}catch(_){}
+  const rank=d=>{const m=/camera2 (\d+)/i.exec(d.label);return (/back|rear|environment/i.test(d.label)?0:10)+(m?+m[1]:5);};
+  devs.sort((a,b)=>rank(a)-rank(b));
+  const ids=[...new Set(devs.map(d=>d.deviceId).filter(Boolean))];
+  if(!ids.length||(ids[0]===firstId&&focuses(first))){ if(focuses(first)&&firstId) remember(firstId); return first; }
+  stop(first);
+  for(const id of ids){ try{const s=await gum(id); if(focuses(s)){remember(id);return s;} stop(s);}catch(_){} }
+  return gum(null); // no lens reports autofocus: use the default back camera
+}
 function liveCapture(fallbackInput){
   return new Promise(resolve=>{
     const el=document.createElement("div"); el.className="cam"; el.setAttribute("role","dialog"); el.setAttribute("aria-modal","true"); el.setAttribute("aria-label","Camera");
@@ -859,7 +882,7 @@ function liveCapture(fallbackInput){
       m.innerHTML=`<p>${esc(msg)}</p>${fallbackInput?'<button class="btn primary" data-c="native">Use phone camera app</button>':""}`;
       el.appendChild(m); };
     const start=async()=>{
-      try{ stream=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:"environment"},width:{ideal:3840},height:{ideal:2160}}}); }
+      try{ stream=await openBackCamera(); }
       catch(err){ return failed(err&&err.name==="NotAllowedError"?"Camera access is blocked for Dex Binder. Allow it in Chrome's site settings, or use your phone's camera app.":"Couldn't start the camera."); }
       if(done){ stream.getTracks().forEach(t=>t.stop()); return; }
       const tr=stream.getVideoTracks()[0];
