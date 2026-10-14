@@ -55,7 +55,7 @@ button{cursor:pointer}
 header.top{background:var(--felt)}
 .sticky{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--felt);border-bottom:1px solid var(--sleeve-edge)}
 .bar{display:flex;align-items:center;gap:12px;padding-block:12px 4px}
-.brand{flex:1;min-width:0;font-family:var(--f-display);font-weight:800;font-stretch:118%;font-size:21px;letter-spacing:-.01em;line-height:1.1}
+.brand{margin:0;flex:1;min-width:0;font-family:var(--f-display);font-weight:800;font-stretch:118%;font-size:21px;letter-spacing:-.01em;line-height:1.1}
 .brand small{display:block;font-family:var(--f-mono);font-weight:500;font-size:11px;letter-spacing:.12em;color:var(--muted);margin-top:3px}
 .iconbtn{border:1px solid var(--sleeve-edge);background:var(--sleeve);border-radius:12px;width:44px;height:44px;display:grid;place-items:center;flex:none;color:var(--ink)}
 .iconbtn svg{width:20px;height:20px}
@@ -67,7 +67,7 @@ header.top{background:var(--felt)}
 .ring .fill{stroke:url(#foil);stroke-linecap:round;transition:stroke-dashoffset .6s ease}
 .ring .pct{position:absolute;inset:0;display:grid;place-items:center;text-align:center;line-height:1}
 .ring .pct b{font-family:var(--f-display);font-weight:800;font-size:18px;font-variant-numeric:tabular-nums}
-.ring .pct span{display:block;font-family:var(--f-mono);font-size:10px;color:var(--muted);margin-top:2px}
+.ring .pct span{display:block;font-family:var(--f-mono);font-size:11px;color:var(--muted);margin-top:2px}
 .vals{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
 .val{background:var(--sleeve);border:1px solid var(--sleeve-edge);border-radius:12px;padding:8px 9px;min-width:0}
 .val > span{display:block;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
@@ -76,13 +76,13 @@ header.top{background:var(--felt)}
 .tools{display:flex;gap:8px;padding-block:10px 8px}
 .search{flex:1;min-width:0;border:1px solid var(--sleeve-edge);background:var(--sleeve);border-radius:12px;padding:0 12px;height:44px}
 .seg{display:flex;border:1px solid var(--sleeve-edge);border-radius:12px;overflow:hidden;background:var(--sleeve);flex:none}
-.seg button{border:0;background:none;padding:0 11px;min-height:42px;font-size:13px;font-weight:700;color:var(--muted)}
+.seg button{border:0;background:none;padding:0 12px;min-height:44px;min-width:44px;font-size:13px;font-weight:700;color:var(--muted)}
 .seg button[aria-pressed=true]{background:var(--ink);color:var(--felt)}
 .gens{display:flex;gap:6px;overflow-x:auto;padding-bottom:10px;scrollbar-width:none}
 .gens::-webkit-scrollbar{display:none}
-.chip{flex:none;border:1px solid var(--sleeve-edge);background:var(--sleeve);border-radius:999px;padding:0 13px;min-height:36px;font-size:13px;font-weight:700;font-variant-numeric:tabular-nums}
+.chip{flex:none;border:1px solid var(--sleeve-edge);background:var(--sleeve);border-radius:999px;padding:0 14px;min-height:44px;font-size:13px;font-weight:700;font-variant-numeric:tabular-nums}
 .chip[aria-pressed=true]{background:var(--gold);border-color:var(--gold);color:var(--on-gold)}
-.chip em{font-style:normal;opacity:.75;font-weight:500;margin-left:5px;font-family:var(--f-mono);font-size:12px}
+.chip em{font-style:normal;opacity:.85;font-weight:500;margin-left:5px;font-family:var(--f-mono);font-size:12px}
 
 /* binder pages */
 main{padding-block:14px 96px}
@@ -98,11 +98,11 @@ main{padding-block:14px 96px}
 .pocket::after{content:"";position:absolute;inset:0;background:var(--sheen);pointer-events:none}
 .pocket:active{transform:scale(.97)}
 @media (hover:hover){.pocket:hover{transform:translateY(-2px);box-shadow:var(--shadow)}}
-.pocket .no{position:absolute;top:6px;left:7px;font-family:var(--f-mono);font-size:10.5px;color:var(--faint);z-index:1}
+.pocket .no{position:absolute;top:6px;left:7px;font-family:var(--f-mono);font-size:12px;color:var(--faint);z-index:1}
 .pocket img.sp{position:absolute;left:50%;top:44%;width:86%;transform:translate(-50%,-50%);filter:brightness(0);opacity:.13}
 :root[data-theme="dark"] .pocket img.sp{filter:brightness(0) invert(1);opacity:.1}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .pocket img.sp{filter:brightness(0) invert(1);opacity:.1}}
-.pocket .nm{position:absolute;left:0;right:0;bottom:0;padding:5px 7px 6px;font-size:11.5px;font-weight:600;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pocket .nm{position:absolute;left:0;right:0;bottom:0;padding:5px 7px 6px;font-size:12.5px;font-weight:600;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pocket.owned{background:radial-gradient(circle at 50% 42%,var(--gold-soft),var(--sleeve) 70%);border-color:var(--gold)}
 .pocket.owned img.sp{filter:none;opacity:1;width:92%}
 .pocket img.px,.sheet-head img{image-rendering:pixelated}
@@ -111,16 +111,16 @@ main{padding-block:14px 96px}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .pocket.owned img.sp{filter:none;opacity:1}}
 .pocket.owned .no{color:var(--gold)}
 .pocket.owned .nm{color:var(--ink);background:linear-gradient(transparent,var(--sleeve) 40%)}
-.pocket.owned .nm i{display:block;font-style:normal;font-family:var(--f-mono);font-weight:500;font-size:10.5px;color:var(--muted)}
+.pocket.owned .nm i{display:block;font-style:normal;font-family:var(--f-mono);font-weight:600;font-size:12px;color:var(--muted)}
 .pocket.owned .nm i.up{color:var(--up)} .pocket.owned .nm i.down{color:var(--down)}
 .pocket.card img.cardimg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .pocket.card .nm{background:linear-gradient(transparent,rgb(0 0 0 / .75) 45%);color:#fff}
 .pocket.card .nm i{color:#e8e6e1!important}
 .pocket.card .no{background:rgb(0 0 0 / .55);color:#fff;border-radius:6px;padding:1px 5px;top:5px;left:5px}
-.rb{display:inline-flex;align-items:center;height:20px;padding:0 6px;border-radius:6px;font-family:var(--f-mono);font-size:10.5px;font-weight:600;letter-spacing:.02em;background:var(--well);color:var(--muted);border:1px solid var(--sleeve-edge);vertical-align:middle}
+.rb{display:inline-flex;align-items:center;height:21px;padding:0 6px;border-radius:6px;font-family:var(--f-mono);font-size:12px;font-weight:600;letter-spacing:.02em;background:var(--well);color:var(--muted);border:1px solid var(--sleeve-edge);vertical-align:middle}
 .rb.hi{background:linear-gradient(135deg,var(--gold-hi),var(--gold));color:var(--on-gold);border-color:transparent}
 .pocket .rb{position:absolute;top:5px;right:5px;z-index:2}
-.rsel{flex:none;max-width:46%;border:1px solid var(--sleeve-edge);background:var(--sleeve);border-radius:999px;padding:0 10px;min-height:36px;font-size:13px;font-weight:700}
+.rsel{flex:none;max-width:46%;border:1px solid var(--sleeve-edge);background:var(--sleeve);border-radius:999px;padding:0 10px;min-height:44px;font-size:13px;font-weight:700}
 .rsel.on{background:var(--gold);border-color:var(--gold);color:var(--on-gold)}
 .fab{position:fixed;z-index:15;right:max(16px,calc(env(safe-area-inset-right,0px) + 16px));bottom:calc(18px + env(safe-area-inset-bottom,0px));display:inline-flex;align-items:center;gap:8px;min-height:54px;padding:0 20px 0 16px;border-radius:999px;border:0;background:var(--ink);color:var(--felt);font-weight:800;font-size:15px;box-shadow:0 6px 20px rgb(0 0 0 / .3)}
 .fab svg{width:22px;height:22px}
@@ -141,18 +141,19 @@ main{padding-block:14px 96px}
 .pocket.owned::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 40%,rgb(255 255 255 / .55),transparent 45%);pointer-events:none}
 .binder .pocket.owned img.sp{filter:drop-shadow(0 6px 6px rgb(0 0 0 / .28));opacity:1}
 .pocket.owned .rb:not(.hi){background:rgb(0 0 0 / .4);color:#fff;border-color:transparent}
-.sheet-head.typed{background:linear-gradient(135deg,color-mix(in srgb,var(--t1) 85%,#fff),var(--t1) 45%,color-mix(in srgb,var(--t2) 80%,#000));color:#fff;border-bottom:0;margin-inline:calc(-1 * max(16px,env(safe-area-inset-left,0px))) calc(-1 * max(16px,env(safe-area-inset-right,0px)));padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px));border-radius:20px 20px 0 0}
+.sheet-head.typed{background:linear-gradient(135deg,color-mix(in srgb,var(--t1) 55%,#000),color-mix(in srgb,var(--t2) 45%,#000));color:#fff;border-bottom:0;margin-inline:calc(-1 * max(16px,env(safe-area-inset-left,0px))) calc(-1 * max(16px,env(safe-area-inset-right,0px)));padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px));border-radius:20px 20px 0 0}
+.sheet:has(.sheet-head.typed) .grab{background:rgb(255 255 255 / .55)}
 .sheet-head.typed img{width:76px;height:76px;filter:drop-shadow(0 6px 8px rgb(0 0 0 / .3));object-fit:contain}
-.sheet-head.typed h2 small{color:rgb(255 255 255 / .85)}
+.sheet-head.typed h2 small{color:#fff;opacity:.92}
 .sheet-head.typed .iconbtn{background:rgb(0 0 0 / .25);border-color:transparent;color:#fff}
 .tchips{display:flex;gap:5px;margin-top:6px;font-stretch:100%}
-.tchip{font-family:var(--f-body);font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#fff;padding:2px 8px;border-radius:999px;box-shadow:inset 0 0 0 1px rgb(255 255 255 / .35);text-shadow:0 1px 1px rgb(0 0 0 / .3)}
+.tchip{font-family:var(--f-body);font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#fff;padding:2px 9px;border-radius:999px;background:color-mix(in srgb,var(--tc) 55%,#000);box-shadow:inset 0 0 0 1.5px var(--tc)}
 /* motion */
 .sheet:not([hidden]){animation:sheetUp .42s cubic-bezier(.2,.9,.25,1.06)}
 .scrim:not([hidden]){animation:fade .25s ease}
 @keyframes sheetUp{from{transform:translateY(100%)}to{transform:none}}
 @keyframes fade{from{opacity:0}}
-.page{animation:rise .45s ease both}
+.binder.intro .page{animation:rise .45s ease both}
 @keyframes rise{from{opacity:0;transform:translateY(10px)}}
 .pocket.pop{animation:pop .7s cubic-bezier(.2,1.6,.4,1)}
 @keyframes pop{0%{transform:scale(.6) rotate(-6deg)}60%{transform:scale(1.08) rotate(2deg)}100%{transform:none}}
@@ -167,8 +168,11 @@ main{padding-block:14px 96px}
 .scrim{position:fixed;inset:0;background:var(--scrim);z-index:20}
 .sheet{position:fixed;left:0;right:0;bottom:0;z-index:21;background:var(--page);border-radius:20px 20px 0 0;max-height:92vh;max-height:92dvh;overflow-y:auto;padding-bottom:max(20px,env(safe-area-inset-bottom,0px));box-shadow:0 -10px 34px rgb(0 0 0 / .25)}
 @media (min-width:700px){.sheet{left:50%;translate:-50% 0;width:640px;bottom:24px;border-radius:20px}}
+.grab{position:absolute;top:6px;left:50%;width:40px;height:5px;margin-left:-20px;border-radius:3px;background:var(--sleeve-edge);z-index:3}
+.sheet-head.typed~*{}
 .sheet-head{position:sticky;top:0;background:var(--page);display:flex;align-items:center;gap:12px;padding-block:14px 10px;border-bottom:1px solid var(--sleeve-edge);z-index:1}
 .sheet-head img{width:60px;height:60px;image-rendering:pixelated}
+.sheet-head h2:focus{outline:none}
 .sheet-head h2{font-family:var(--f-display);font-weight:800;font-stretch:112%;font-size:22px;margin:0;line-height:1.1;flex:1;min-width:0;text-wrap:balance}
 .sheet-head h2 small{display:block;font-family:var(--f-mono);font-size:12px;color:var(--gold);font-weight:500;letter-spacing:.06em;font-stretch:100%}
 .sheet-body{padding-block:16px;display:flex;flex-direction:column;gap:14px}
@@ -217,7 +221,7 @@ dl.facts dd{margin:0;font-weight:600;font-variant-numeric:tabular-nums;min-width
   <svg width="0" height="0" aria-hidden="true" style="position:absolute"><defs><linearGradient id="foil" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:var(--gold-hi)"/><stop offset=".55" style="stop-color:var(--gold)"/><stop offset="1" style="stop-color:var(--gold-hi)"/></linearGradient></defs></svg>
   <div class="wrap">
     <div class="bar">
-      <div class="brand">Dex Binder<small>NATIONAL DEX · #0001–1025</small></div>
+      <h1 class="brand">Dex Binder<small>NATIONAL DEX · #0001–1025</small></h1>
       <button class="iconbtn" id="statsBtn" aria-label="Stats and backup">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
       </button>
@@ -235,7 +239,7 @@ dl.facts dd{margin:0;font-weight:600;font-variant-numeric:tabular-nums;min-width
     </div>
   </div>
 </header>
-<div class="sticky">
+<nav class="sticky" aria-label="Find and filter">
   <div class="wrap">
     <div class="tools">
       <input class="search" id="q" type="search" placeholder="Name or number" autocomplete="off" aria-label="Search Pokémon">
@@ -247,7 +251,7 @@ dl.facts dd{margin:0;font-weight:600;font-variant-numeric:tabular-nums;min-width
     </div>
     <div class="gens"><select class="rsel" id="rfilter" aria-label="Filter by rarity"><option value="">All rarities</option></select><div id="gens" style="display:contents"></div></div>
   </div>
-</div>
+</nav>
 
 <main class="wrap"><div class="binder" id="grid"></div><p class="empty" id="none" hidden>No Pokémon match that filter.</p></main>
 
@@ -351,6 +355,7 @@ async function refreshPrices(manual){
   if(!$("#sheet").hidden && $("#statsMark")) showStats();
 }
 
+document.addEventListener("keydown",e=>{const l=e.target.closest&&e.target.closest("label.btn");if(l&&(e.key==="Enter"||e.key===" ")){e.preventDefault();const i=l.querySelector("input");if(i)i.click();}});
 /* ---------- appearance ---------- */
 function applyTheme(t){const r=document.documentElement; if(t==="light"||t==="dark") r.setAttribute("data-theme",t); else r.removeAttribute("data-theme");
   try{localStorage.setItem("dexbinder-theme",t||"auto");}catch(_){}
@@ -415,7 +420,7 @@ function pocket(n){
   const v=valueOf(e), d=v!=null&&e.price!=null?v-e.price:null;
   const sub=v!=null?`<i class="${d>0?"up":d<0?"down":""}">${short(v)}</i>`:`<i>${esc(e.set||"")}</i>`;
   const card=e.img?`<img class="cardimg" loading="lazy" decoding="async" alt="" src="${esc(e.img)}" onerror="this.closest('.pocket').classList.remove('card');this.remove()">`:"";
-  return `<button class="pocket owned${e.img?" card":""}" style="${tv}" data-n="${n}" aria-label="#${n} ${esc(name)}, owned${e.rarity?", "+esc(rLabel(e.rarity)):""}">${badge(e.rarity)}<img class="sp${PIXEL?" px":""}" loading="lazy" decoding="async" alt="" width="96" height="96" src="${PIXEL?SPRITE(n):ART(n)}"${PIXEL?"":` onerror="this.onerror=function(){this.style.visibility='hidden'};this.classList.add('px');this.src='${SPRITE(n)}'"`}>${card}<span class="no">#${pad(n)}</span><span class="nm">${esc(name)}${sub}</span></button>`;
+  return `<button class="pocket owned${e.img?" card":""}" style="${tv}" data-n="${n}" aria-label="#${n} ${esc(name)}, owned${e.rarity?", "+esc(rLabel(e.rarity)):""}${v!=null?", value "+esc(short(v)):""}">${badge(e.rarity)}<img class="sp${PIXEL?" px":""}" loading="lazy" decoding="async" alt="" width="96" height="96" src="${PIXEL?SPRITE(n):ART(n)}"${PIXEL?"":` onerror="this.onerror=function(){this.style.visibility='hidden'};this.classList.add('px');this.src='${SPRITE(n)}'"`}>${card}<span class="no">#${pad(n)}</span><span class="nm">${esc(name)}${sub}</span></button>`;
 }
 function render(){
   const q=query.trim().toLowerCase(), qn=/^\d+$/.test(q)?String(parseInt(q,10)):null;
@@ -433,7 +438,7 @@ function render(){
     for(let n=a;n<=z;n++){g+=pocket(n); if(entries.has(n)) have++; shown++;}
     html+=`<section class="page" aria-label="Binder page ${p+1}"><div class="page-h"><span>PAGE <b>${p+1}</b> · #${pad(a)}–${pad(z)}</span><span class="${have===z-a+1?"full":""}">${have}/${z-a+1}</span></div><div class="grid">${g}</div></section>`;
   }
-  const el=$("#grid"); el.className="binder"+(flat?" flat":""); el.innerHTML=html; $("#none").hidden=shown>0;
+  const el=$("#grid"); el.className="binder"+(flat?" flat":"")+(render.done?"":" intro"); render.done=true; el.innerHTML=html; $("#none").hidden=shown>0;
   countTo($("#count"),entries.size,v=>String(Math.round(v)));
   $("#ring").style.strokeDashoffset=String(207.35*(1-entries.size/1025));
   $("#ringLabel").setAttribute("aria-label",`${entries.size} of 1025 collected`);
@@ -442,7 +447,7 @@ function render(){
   const d=t.both?t.bVal-t.bPaid:null;
   countTo($("#vGain"),d,v=>v==null?"—":`<span class="${v>0.5?"up":v<-0.5?"down":""}">${v>0.5?"+":v<-0.5?"−":""}${short(Math.abs(v))}</span>`);
 }
-$("#q").addEventListener("input",e=>{query=e.target.value;render();});
+let qt; $("#q").addEventListener("input",e=>{clearTimeout(qt);qt=setTimeout(()=>{query=e.target.value;render();},140);});
 document.querySelectorAll(".seg button").forEach(b=>b.addEventListener("click",()=>{filter=b.dataset.f;document.querySelectorAll(".seg button").forEach(x=>x.setAttribute("aria-pressed",x===b));render();}));
 function renderRarities(){
   const codes=new Map(); entries.forEach(e=>{if(e.rarity){const c=rCode(e.rarity);codes.set(c,(codes.get(c)||0)+1);}});
@@ -459,13 +464,21 @@ $("#grid").addEventListener("click",e=>{const p=e.target.closest(".pocket");if(p
 /* ---------- sheet ---------- */
 let urls=[];
 function freeUrls(){urls.forEach(u=>URL.revokeObjectURL(u));urls=[];}
-function openSheet(html){freeUrls();$("#sheet").innerHTML=html;$("#sheet").hidden=false;$("#scrim").hidden=false;document.body.style.overflow="hidden";$("#sheet").scrollTop=0;}
-function closeSheet(){$("#sheet").hidden=true;$("#scrim").hidden=true;document.body.style.overflow="";freeUrls();if(history.state&&history.state.sheet)history.back();}
+let opener=null;
+function openSheet(html){freeUrls();const sh=$("#sheet");const was=!sh.hidden;if(!was) opener=document.activeElement;
+  sh.innerHTML='<div class="grab" aria-hidden="true"></div>'+html;sh.hidden=false;$("#scrim").hidden=false;document.body.style.overflow="hidden";sh.scrollTop=0;
+  const t=sh.querySelector("h2");if(t){t.tabIndex=-1;t.focus({preventScroll:true});}}
+function restoreFocus(){const o=opener;opener=null;if(o&&document.contains(o))o.focus({preventScroll:true});else{const n=o&&o.dataset&&o.dataset.n;const p=n&&document.querySelector(`.pocket[data-n="${n}"]`);if(p)p.focus({preventScroll:true});}}
+document.addEventListener("keydown",e=>{const sh=$("#sheet");if(sh.hidden)return;
+  if(e.key==="Escape"){e.preventDefault();closeSheet();return;}
+  if(e.key==="Tab"){const f=[...sh.querySelectorAll('button,input,select,textarea,a[href],label.btn,[tabindex]:not([tabindex="-1"])')].filter(x=>!x.closest("[hidden]")&&x.offsetParent!==null);if(!f.length)return;
+    const a=f[0],z=f[f.length-1];if(e.shiftKey&&document.activeElement===a){e.preventDefault();z.focus();}else if(!e.shiftKey&&document.activeElement===z){e.preventDefault();a.focus();}}});
+function closeSheet(){$("#sheet").hidden=true;$("#scrim").hidden=true;document.body.style.overflow="";freeUrls();restoreFocus();if(history.state&&history.state.sheet)history.back();}
 $("#scrim").addEventListener("click",closeSheet);
-window.addEventListener("popstate",()=>{if(!$("#sheet").hidden){$("#sheet").hidden=true;$("#scrim").hidden=true;document.body.style.overflow="";freeUrls();}});
+window.addEventListener("popstate",()=>{if(!$("#sheet").hidden){$("#sheet").hidden=true;$("#scrim").hidden=true;document.body.style.overflow="";freeUrls();restoreFocus();}});
 function pushSheet(){ if(!(history.state&&history.state.sheet)) history.pushState({sheet:1},""); }
 const closeBtn=`<button class="iconbtn" data-act="close" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>`;
-const head=n=>`<div class="sheet-head typed" style="${tvars(n)}"><img class="${PIXEL?"":"art"}" src="${PIXEL?SPRITE(n):ART(n)}" alt="" onerror="this.onerror=null;this.className='';this.src='${SPRITE(n)}'"><h2 id="sheetTitle"><small>#${pad(n)} · Gen ${ROMAN[genOf(n)]}</small>${esc(SPECIES[n-1][0])}<span class="tchips">${typesOf(n).map(t=>`<span class="tchip" style="background:${TYPE_COL[t]}">${TYPE_NAMES[t]}</span>`).join("")}</span></h2>${closeBtn}</div>`;
+const head=n=>`<div class="sheet-head typed" style="${tvars(n)}"><img class="${PIXEL?"":"art"}" src="${PIXEL?SPRITE(n):ART(n)}" alt="" onerror="this.onerror=null;this.className='';this.src='${SPRITE(n)}'"><h2 id="sheetTitle"><small>#${pad(n)} · Gen ${ROMAN[genOf(n)]}</small>${esc(SPECIES[n-1][0])}<span class="tchips">${typesOf(n).map(t=>`<span class="tchip" style="--tc:${TYPE_COL[t]}">${TYPE_NAMES[t]}</span>`).join("")}</span></h2>${closeBtn}</div>`;
 
 async function openSlot(n){ pushSheet(); const e=entries.get(n); e?showFilled(n,e):showSearch(n); }
 
@@ -528,7 +541,7 @@ async function searchCards(n){
 async function showSearch(n){
   openSheet(head(n)+`<div class="sheet-body">
     <div class="field"><label class="label" for="cf">Find your card</label><input id="cf" type="search" placeholder="Filter by set, number or rarity"></div>
-    <p class="status" id="st">Looking up ${esc(SPECIES[n-1][0])} cards…</p>
+    <p class="status" id="st"><span class="spin"></span>Looking up ${esc(SPECIES[n-1][0])} cards…</p>
     <div class="results" id="res"></div>
     <button class="btn" data-act="manual">Can't find it? Enter it by hand</button>
   </div>`);
@@ -572,8 +585,8 @@ async function showForm(n,e,editing,manual,scanPhoto){
     </div>
     <p class="note">Leave "My value" blank to use the TCGplayer market price. Fill it in for graded cards or local prices.</p>
     <div class="field"><span class="label">Photo of my card</span>
-      <div class="row"><label class="btn" style="text-align:center">Take photo<input id="fcam" type="file" accept="image/*" capture="environment" hidden></label>
-      <label class="btn" style="text-align:center">From gallery<input id="fgal" type="file" accept="image/*" hidden></label></div>
+      <div class="row"><label class="btn" tabindex="0" style="text-align:center">Take photo<input id="fcam" type="file" accept="image/*" capture="environment" hidden></label>
+      <label class="btn" tabindex="0" style="text-align:center">From gallery<input id="fgal" type="file" accept="image/*" hidden></label></div>
       <img id="pv" src="${preview}" alt="Photo preview" style="max-height:240px;object-fit:contain;border-radius:10px" ${preview?"":"hidden"}>
     </div>
     <div class="field"><label class="label" for="fnotes">Notes</label><textarea id="fnotes" rows="2" placeholder="Condition, where you bought it…">${esc(e.notes||"")}</textarea></div>
@@ -652,8 +665,8 @@ $("#scanBtn").addEventListener("click",()=>{pushSheet();showScan();});
 function showScan(blob){
   openSheet(`<div class="sheet-head"><h2 id="sheetTitle"><small>SCAN</small>Scan a card</h2>${closeBtn}</div><div class="sheet-body">
     <p class="note">Photograph the card straight on, filling the frame, with the number at the bottom in focus.</p>
-    <div class="row"><label class="btn primary">Take photo<input id="scam" type="file" accept="image/*" capture="environment" hidden></label>
-    <label class="btn">From gallery<input id="sgal" type="file" accept="image/*" hidden></label></div>
+    <div class="row"><label class="btn primary" tabindex="0">Take photo<input id="scam" type="file" accept="image/*" capture="environment" hidden></label>
+    <label class="btn" tabindex="0">From gallery<input id="sgal" type="file" accept="image/*" hidden></label></div>
     <img id="spv" class="scanpv" alt="Your card photo" hidden>
     <p class="status" id="sst" hidden></p>
     <div class="readout" id="sread" hidden></div>
