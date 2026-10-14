@@ -6,8 +6,9 @@
 <title>Dex Binder</title>
 <meta name="theme-color" content="#0d0f13">
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" href="icons/icon-192.png">
-<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@500;600&display=swap">
@@ -56,7 +57,13 @@ header.top{background:var(--felt)}
 .sticky{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--felt);border-bottom:1px solid var(--sleeve-edge)}
 .bar{display:flex;align-items:center;gap:12px;padding-block:12px 4px}
 .brand{margin:0;flex:1;min-width:0;font-family:var(--f-display);font-weight:800;font-stretch:118%;font-size:21px;letter-spacing:-.01em;line-height:1.1}
-.brand small{display:block;font-family:var(--f-mono);font-weight:500;font-size:11px;letter-spacing:.12em;color:var(--muted);margin-top:3px}
+.brand{display:flex;align-items:center;gap:12px}
+.brand .logo{height:72px;width:auto;flex:none;display:block}
+.brand .logo-d{display:none}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .brand .logo-l{display:none}:root:not([data-theme="light"]) .brand .logo-d{display:block}}
+:root[data-theme="dark"] .brand .logo-l{display:none}:root[data-theme="dark"] .brand .logo-d{display:block}
+.brand .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.brand small{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block;font-family:var(--f-mono);font-weight:500;font-size:11px;letter-spacing:.12em;color:var(--muted);margin-top:0}
 .iconbtn{border:1px solid var(--sleeve-edge);background:var(--sleeve);border-radius:12px;width:44px;height:44px;display:grid;place-items:center;flex:none;color:var(--ink)}
 .iconbtn svg{width:20px;height:20px}
 .summary{display:grid;grid-template-columns:auto minmax(0,1fr);gap:14px;align-items:center;padding-block:8px 10px}
@@ -165,7 +172,7 @@ main{padding-block:14px 96px}
 /* views */
 body[data-view="shelf"] .sticky,body[data-view="shelf"] .fab{display:none}
 body[data-view="binder"] .seg,body[data-view="binder"] .chip{display:none}
-.brand span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brand span:not(.vh){display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 /* shelf */
 .shelf{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,160px),1fr));gap:14px}
 .shelf h2{grid-column:1/-1;margin:4px 0 -2px;font-size:12px;letter-spacing:.12em;color:var(--muted);font-family:var(--f-mono);font-weight:600}
@@ -259,7 +266,7 @@ dl.facts dd{margin:0;font-weight:600;font-variant-numeric:tabular-nums;min-width
   <div class="wrap">
     <div class="bar">
       <button class="iconbtn" id="backBtn" aria-label="Back to my binders" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
-      <h1 class="brand"><span id="title">Dex Binder</span><small id="subtitle">NATIONAL DEX · #0001–1025</small></h1>
+      <h1 class="brand"><img class="logo logo-l" src="icons/logo-light.png" alt="" width="206" height="240"><img class="logo logo-d" src="icons/logo-dark.png" alt="" width="206" height="240"><span id="title" class="vh">Dex Binder</span><small id="subtitle">NATIONAL DEX · #0001–1025</small></h1>
       <button class="iconbtn" id="editBtn" aria-label="Edit binder" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16v4zM14 6l4 4"/></svg></button>
       <button class="iconbtn" id="statsBtn" aria-label="Stats and backup">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
@@ -488,7 +495,7 @@ function setView(v,noPush){
   document.body.dataset.view=kind;
   $("#backBtn").hidden=kind==="shelf"; $("#editBtn").hidden=kind!=="binder";
   $("#title").textContent=kind==="shelf"?"Dex Binder":kind==="dex"?"National Dex":b.name;
-  $("#subtitle").textContent=DEMO_TAG+(kind==="shelf"?"MY BINDERS":kind==="dex"?"#0001–1025":"CUSTOM BINDER");
+  $("#subtitle").textContent=DEMO_TAG+(kind==="shelf"?"MY BINDERS":kind==="dex"?"NATIONAL DEX · #0001–1025":b.name.toUpperCase());
   $("#q").placeholder=kind==="binder"?"Card, set or number":"Name or number";
   document.title=kind==="shelf"?"Dex Binder":`${kind==="dex"?"National Dex":b.name} · Dex Binder`;
   if(kind!=="shelf") renderGens();
