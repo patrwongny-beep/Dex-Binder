@@ -232,6 +232,8 @@ body[data-view="binder"] .seg,body[data-view="binder"] .chip{display:none}
 .res b{font-size:13px;line-height:1.25}
 .res span{font-size:12px;color:var(--muted);line-height:1.35}
 .res .mk{font-family:var(--f-mono);font-size:12.5px;color:var(--gold);font-weight:600}
+.res.best{border:2px solid var(--gold);padding:5px}
+.res .tag{align-self:flex-start;font-style:normal;font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;background:var(--gold);color:var(--on-gold);border-radius:6px;padding:1px 6px}
 .status{font-size:14px;color:var(--muted);margin:0}
 .filled{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
 .filled figure{margin:0;display:flex;flex-direction:column;gap:6px}
@@ -263,7 +265,10 @@ dl.facts dd{margin:0;font-weight:600;font-variant-numeric:tabular-nums;min-width
 .cam .ctop{position:relative;display:flex;align-items:center;gap:12px;padding:max(14px,env(safe-area-inset-top,0px)) 16px 0}
 .cam .ctop p{margin:0;flex:1;font-size:14px;line-height:1.35;text-shadow:0 1px 3px #000}
 .cam .ctop .iconbtn{background:rgb(0 0 0 / .45);border-color:transparent;color:#fff}
-.cam .cbot{position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:center;padding:0 16px max(26px,env(safe-area-inset-bottom,0px))}
+.cam .cbot{position:absolute;left:0;right:0;bottom:0;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:0 16px max(26px,env(safe-area-inset-bottom,0px))}
+.cam .zoom{justify-self:center;width:56px;height:56px;border-radius:50%;border:2px solid rgb(255 255 255 / .8);background:rgb(0 0 0 / .5);color:#fff;font-weight:800;font-size:16px}
+.cam .zoom[aria-pressed=true]{background:#fff;color:#111}
+.cam video{transform-origin:50% 46%;transition:transform .2s ease}
 .cam .shutter{width:76px;height:76px;border-radius:50%;border:5px solid #fff;background:rgb(255 255 255 / .22)}
 .cam .shutter:active{background:#fff}
 .cam .shutter:disabled{opacity:.4}
@@ -418,6 +423,11 @@ async function refreshPrices(manual){
         e.prices=pr; e.variant=pickVariant(pr,e.variant); e.usd=usdOf(pr,e.variant); e.priceUpdated=Date.now();
         await put(e.binder?"items":"entries",e); updated++;}
     }catch(_){failed=true;}
+  }
+  for(const e of [...entries.values(),...items.values()].filter(e=>e.src==="tcgdex"&&cid(e))){
+    try{const pr=tdxPrices(await tdxGet(`/cards/${encodeURIComponent(cid(e))}`)); if(!pr) continue;
+      e.prices=pr; e.variant=pickVariant(pr,e.variant); e.usd=usdOf(pr,e.variant); e.priceUpdated=Date.now();
+      await put(e.binder?"items":"entries",e); updated++;}catch(_){failed=true;}
   }
   if(!failed){settings.pricesUpdated=Date.now(); await put("meta",settings,"settings");}
   refreshing=false; render();
@@ -661,22 +671,66 @@ async function showFilled(n,e){
   };
 }
 
-/* card search: pokemontcg.io, falls back to TCGdex */
-const mapTcg=c=>({id:c.id,cardName:c.name,number:`${c.number}/${c.set.printedTotal??"?"}`,set:c.set.name,series:c.set.series,rarity:c.rarity||"",released:c.set.releaseDate||"",img:c.images?.small||"",imgLarge:c.images?.large||"",src:"pokemontcg",prices:c.tcgplayer?.prices||null,priceUpdated:Date.now(),dexNums:c.nationalPokedexNumbers||[]});
+/* card search: pokemontcg.io and TCGdex together */
+/* ---------- TCGdex: second card database (has newer sets and promos) ---------- */
+const TDX="https://api.tcgdex.net/v2/en";
+let tdxSets=null;
+async function tdxSetNames(){
+  if(tdxSets) return tdxSets;
+  try{const c=JSON.parse(localStorage.getItem("dexbinder-tdxsets")||"null"); if(c&&Date.now()-c.t<7*864e5){tdxSets=new Map(c.s);return tdxSets;}}catch(_){}
+  try{const r=await fetch(`${TDX}/sets`); if(r.ok){const j=await r.json(); tdxSets=new Map(j.map(s=>[s.id,s.name]));
+    try{localStorage.setItem("dexbinder-tdxsets",JSON.stringify({t:Date.now(),s:[...tdxSets]}));}catch(_){} return tdxSets;}}catch(_){}
+  return new Map();
+}
+const tdxSetId=id=>String(id).slice(0,String(id).lastIndexOf("-"));
+const dexFromName=nm=>{const flat=String(nm||"").toUpperCase().replace(/[^A-Z0-9]/g,""); const h=NAMES.find(x=>flat.includes(x.k)); return h?h.n:null;};
+async function mapTdx(list,dex){const sets=await tdxSetNames();
+  return list.map(c=>{const sid=tdxSetId(c.id), d=dex||dexFromName(c.name);
+    return {id:c.id,cardName:c.name,number:c.localId,set:sets.get(sid)||sid.toUpperCase(),setCode:/^[a-z]+$/.test(sid)?sid.toUpperCase():"",series:"",rarity:"",released:"",
+      img:c.image?c.image+"/low.webp":"",imgLarge:c.image?c.image+"/high.webp":"",src:"tcgdex",prices:null,dexNums:d?[d]:[]};});}
+async function tdxGet(path){const r=await fetch(TDX+path); if(!r.ok) throw new Error("tcgdex"); return r.json();}
+const normNo=s=>String(s??"").split("/")[0].trim().toUpperCase().replace(/^([A-Z]*)0+(\d)/,"$1$2");
+const cardKey=c=>`${String(c.cardName||"").toLowerCase()}|${normNo(c.number)}|${String(c.set||"").toLowerCase().replace(/[^a-z0-9]/g,"")}`;
+// Cards only TCGdex has (usually the newest sets and promos) go first; pokemontcg.io copies are kept because they carry prices.
+function mergeCards(main,extra){const seen=new Set(main.map(cardKey)); return [...extra.filter(c=>!seen.has(cardKey(c))),...main];}
+// TCGplayer prices from a TCGdex card, in the same shape pokemontcg.io uses.
+const TDX_VAR={normal:"normal",holofoil:"holofoil","reverse-holofoil":"reverseHolofoil",reverse:"reverseHolofoil","1st-edition-holofoil":"1stEditionHolofoil","1st-edition":"1stEditionNormal"};
+function tdxPrices(d){const t=d&&d.pricing&&d.pricing.tcgplayer; if(!t||typeof t!=="object") return null; const out={};
+  for(const [k,v] of Object.entries(t)){ if(!v||typeof v!=="object") continue;
+    const m=v.marketPrice??v.market??null, mid=v.midPrice??v.mid??null; if(m==null&&mid==null) continue;
+    out[TDX_VAR[k]||k.replace(/-([a-z0-9])/g,(_,x)=>x.toUpperCase())]={market:m,mid}; }
+  return Object.keys(out).length?out:null;}
+async function withPrices(c){
+  if(!c||c.src!=="tcgdex"||c.prices) return c;
+  try{const d=await tdxGet(`/cards/${encodeURIComponent(c.id)}`);
+    const dex=(d.dexId||[]).find(x=>x>=1&&x<=1025);
+    return {...c,prices:tdxPrices(d),priceUpdated:Date.now(),rarity:c.rarity||(d.rarity&&d.rarity!=="None"?d.rarity:""),released:c.released||(d.set&&d.set.releaseDate)||"",
+      set:(d.set&&d.set.name)||c.set,dexNums:c.dexNums&&c.dexNums.length?c.dexNums:(dex?[dex]:[])};}
+  catch(_){ return c; }
+}
+// How well a card fits whatever the camera managed to read (number, set total, set code).
+function clueScore(c,text){
+  const T=String(text||"").toUpperCase().replace(/[OQ](?=\d)|(?<=\d)[OQ]/g,"0");
+  const runs=(T.match(/\d+/g)||[]).map(d=>d.replace(/^0+(?=\d)/,""));
+  const n=normNo(c.number).replace(/^[A-Z]+/,""); let s=0;
+  const tot=String(c.number||"").split("/")[1], totHit=!!(tot&&tot!=="?"&&runs.includes(tot.replace(/^0+(?=\d)/,"")));
+  const code=String(c.setCode||"").toUpperCase(), codeHit=!!(code&&new RegExp(`(^|[^A-Z])${code}([^A-Z]|$)`).test(T));
+  if(n){ if(runs.includes(n)) s+=n.length>=3||totHit||codeHit?5:1; else if(n.length>=3&&runs.some(d=>d.startsWith(n))) s+=3; }
+  if(totHit) s+=2; if(codeHit) s+=3;
+  return s;
+}
+
+const mapTcg=c=>({id:c.id,cardName:c.name,number:`${c.number}/${c.set.printedTotal??"?"}`,set:c.set.name,series:c.set.series,rarity:c.rarity||"",released:c.set.releaseDate||"",img:c.images?.small||"",imgLarge:c.images?.large||"",src:"pokemontcg",setCode:String(c.set.ptcgoCode||"").toUpperCase(),prices:c.tcgplayer?.prices||null,priceUpdated:Date.now(),dexNums:c.nationalPokedexNumbers||[]});
 const cardCache=new Map();
 async function searchCards(n){
   if(cardCache.has(n)) return cardCache.get(n);
-  let out=[];
-  try{
-    const r=await fetch(`https://api.pokemontcg.io/v2/cards?q=nationalPokedexNumbers:${n}&orderBy=-set.releaseDate&pageSize=250&select=id,name,number,rarity,set,images,tcgplayer,nationalPokedexNumbers`);
-    if(!r.ok) throw 0; const j=await r.json();
-    out=j.data.map(mapTcg);
-    if(Date.now()-(settings.rateUpdated||0)>12*3600*1000) await refreshRate();
-  }catch(_){
-    const r=await fetch(`https://api.tcgdex.net/v2/en/cards?dexId=eq:${n}`);
-    if(!r.ok) throw new Error("search failed"); const j=await r.json();
-    out=j.map(c=>{const setId=c.id.slice(0,c.id.lastIndexOf("-"));return {id:c.id,cardName:c.name,number:c.localId,set:setId,series:"",rarity:"",released:"",img:c.image?c.image+"/low.webp":"",imgLarge:c.image?c.image+"/high.webp":"",src:"tcgdex"};}).reverse();
-  }
+  const [a,b]=await Promise.allSettled([
+    (async()=>{const r=await fetch(`https://api.pokemontcg.io/v2/cards?q=nationalPokedexNumbers:${n}&orderBy=-set.releaseDate&pageSize=250&select=id,name,number,rarity,set,images,tcgplayer,nationalPokedexNumbers`);
+      if(!r.ok) throw 0; return (await r.json()).data.map(mapTcg);})(),
+    (async()=>(await mapTdx(await tdxGet(`/cards?dexId=eq:${n}`),n)).reverse())()]);
+  if(a.status==="rejected"&&b.status==="rejected") throw new Error("search failed");
+  const out=mergeCards(a.status==="fulfilled"?a.value:[], b.status==="fulfilled"?b.value:[]);
+  if(a.status==="fulfilled"&&Date.now()-(settings.rateUpdated||0)>12*3600*1000) await refreshRate();
   cardCache.set(n,out); return out;
 }
 async function showSearch(n){
@@ -694,7 +748,7 @@ async function showSearch(n){
   $("#sheet").onclick=ev=>{const a=ev.target.closest("[data-act]");
     if(a&&a.dataset.act==="close") return closeSheet();
     if(a&&a.dataset.act==="manual") return showForm(n,entries.get(n)||{},false,true);
-    const r=ev.target.closest(".res"); if(r){const c=list.find(x=>x.id===r.dataset.id); const prev=entries.get(n)||{}; showForm(n,{...c,price:prev.price,notes:prev.notes,added:prev.added},false);} };
+    const r=ev.target.closest(".res"); if(r){(async()=>{const c=await withPrices(list.find(x=>x.id===r.dataset.id)); if(!c) return; const prev=entries.get(n)||{}; showForm(n,{...c,price:prev.price,notes:prev.notes,added:prev.added},false);})();} };
   $("#cf").addEventListener("input",draw);
   try{ list=await searchCards(n); if(!list.length) $("#st").textContent="No cards found in the database. Enter it by hand below."; draw(); }
   catch(_){ $("#st").textContent="Couldn't reach the card database. Check your connection, or enter the card by hand."; }
@@ -773,10 +827,13 @@ function parseScan(text){
   let num=null,total=null,m;
   const re=/(?<![A-Z0-9])([A-Z]{0,4}?)([0-9OIB]{1,3})\s*[\/\\|]\s*([A-Z]{0,4}?)([0-9OIB]{2,3})(?![0-9])/g;
   while((m=re.exec(T))){const t=parseInt(dig(m[4]),10); if(t>=10&&t<=400){num=m[1]+dig(m[2]);total=m[3]+dig(m[4]);break;}}
-  if(!num){const p=/\b(SWSH|SVP|SV|SM|XY|BW)\s?(\d{2,3})\b/.exec(T); if(p) num=p[1]+p[2];}
+  let code=null;
+  if(!num){const p=/(?<![A-Z])(MEP|SVP|SWSHP?|SMP|XYP|BWP|HGSSP|DPP|NP|WP)\s*(?:EN)?\s*[#.]?\s*([0-9OIB]{1,3})(?![0-9])/.exec(T);
+    if(p){code=p[1]; num=dig(p[2]).replace(/^0+(?=\d)/,"");}}
+  if(!num){const p=/\b(SWSH|SV|SM|XY|BW)\s?(\d{2,3})\b/.exec(T); if(p) num=p[1]+p[2];}
   const flat=T.replace(/[^A-Z0-9]/g,"");
   const hit=NAMES.find(x=>flat.includes(x.k));
-  return {num,total,dex:hit?hit.n:null};
+  return {num,total,code,dex:hit?hit.n:null};
 }
 // Clean up a region for OCR: greyscale, stretch contrast (mode 0) or black/white threshold (mode 1), dark text on light.
 function prep(bmp,x,y,w,h,k,mode){
@@ -805,33 +862,50 @@ async function readCard(blob,onStep){
   await w.setParameters({tessedit_char_whitelist:"0123456789/ABCDEFGHIJKLMNOPQRSTUVWXYZ",tessedit_pageseg_mode:"11"});
   try{
     // The number sits in the bottom strip: bottom-left on newer cards, bottom-right on older ones.
-    const sy=Math.round(H*.84), sh=H-sy, k=Math.min(3,Math.max(1,3125/H));
-    outer: for(const mode of [0,1]) for(const [l,r] of [[0,.56],[.44,1],[0,1]]){
-      const x=Math.round(W*l), ww=Math.round(W*(r-l));
-      const t=(await w.recognize(prep(bmp,x,sy,ww,sh,k,mode))).data.text; texts.push(t);
-      const p=parseScan(t); if(p.num&&p.total){a=p;break outer;} if(p.num&&!a.num) a=p;
+    // Several small passes over the bottom of the card, from most to least likely to hold the number. Stops at the first clear read.
+    // [top of strip, left, right, zoom (relative to a 2576px-tall photo), page mode, clean-up mode]
+    const K=c=>Math.min(3,Math.max(1,c*2576/H));
+    const passes=[[.88,0,.35,1.6,"11",0],[.88,0,.35,1.2,"6",0],[.84,0,.35,1.2,"11",0],[.88,.62,1,1.6,"11",0],
+      [.84,0,.56,1.2,"11",0],[.84,.44,1,1.2,"11",0],[.84,0,.56,1.2,"11",1],[.84,.44,1,1.2,"11",1]];
+    let psm="11";
+    for(const [top,l,r,c,mode,clean] of passes){
+      if(mode!==psm){ psm=mode; await w.setParameters({tessedit_pageseg_mode:mode}); }
+      const y=Math.round(H*top), x=Math.round(W*l), ww=Math.round(W*(r-l));
+      const t=(await w.recognize(prep(bmp,x,y,ww,H-y,K(c),clean))).data.text; texts.push(t);
+      const p=parseScan(t); if(p.num&&(p.total||p.code)){a=p;break;} if(p.num&&!a.num) a=p;
     }
     if(!a.num&&!b.num){ // photo not framed tightly: search the whole picture
       const t=(await w.recognize(prep(bmp,0,0,W,H,Math.min(1.5,2400/W),0))).data.text; texts.push(t);
       const p=parseScan(t); if(p.num) a=p; }
   } finally { await w.setParameters({tessedit_char_whitelist:"",tessedit_pageseg_mode:"3"}); }
   const text=texts.join("\n");
-  return {text:text.replace(/\s+/g," ").trim().slice(0,240), num:a.num||b.num, total:a.total||b.total, dex:b.dex||parseScan(text).dex};
+  const all=parseScan(text);
+  return {text, clues:texts.slice(1).join("\n"), num:a.num||b.num||all.num, total:a.total||b.total, code:a.code||b.code||all.code, dex:b.dex||all.dex};
 }
-async function lookupScan({num,total,dex}){
+async function lookupScan({num,total,dex,code}){
   const clean=String(num).toUpperCase().replace(/^([A-Z]*)0+(\d)/,"$1$2");
   const tot=total?String(total).toUpperCase().replace(/^([A-Z]*)0+(\d)/,"$1$2"):null;
   const go=async q=>{const r=await fetch(`https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(q)}&pageSize=60&orderBy=-set.releaseDate&select=id,name,number,rarity,set,images,tcgplayer,nationalPokedexNumbers`);if(!r.ok)throw new Error("lookup");return (await r.json()).data;};
-  let list=dex?await go(`number:"${clean}" nationalPokedexNumbers:${dex}`):[];
-  if(!list.length) list=await go(`number:"${clean}"`);
-  if(!list.length&&/^[A-Z]+\d+$/.test(clean)&&!/^(TG|GG|SV|SWSH|SM|XY|BW|RC|SH)\d/.test(clean)) list=await go(`number:"${clean.replace(/^[A-Z]+/,"")}"`);
-  {const f=list.filter(c=>String(c.number).toUpperCase()===clean); if(f.length) list=f;}
-  if(tot){const t=tot.replace(/\D/g,""), pre=tot.replace(/\d/g,"");
-    const f=list.filter(c=>pre?String(c.number).toUpperCase().startsWith(pre)||c.set.printedTotal==t:c.set.printedTotal==t);
-    if(f.length) list=f;}
-  if(dex){const f=list.filter(c=>(c.nationalPokedexNumbers||[]).includes(dex)); if(f.length) list=f;}
+  const fromPtcg=async()=>{
+    let list=dex?await go(`number:"${clean}" nationalPokedexNumbers:${dex}`):[];
+    if(!list.length) list=await go(`number:"${clean}"`);
+    if(!list.length&&/^[A-Z]+\d+$/.test(clean)&&!/^(TG|GG|SV|SWSH|SM|XY|BW|RC|SH)\d/.test(clean)) list=await go(`number:"${clean.replace(/^[A-Z]+/,"")}"`);
+    {const f=list.filter(c=>String(c.number).toUpperCase()===clean); if(f.length) list=f;}
+    if(tot){const t=tot.replace(/\D/g,""), pre=tot.replace(/\d/g,"");
+      const f=list.filter(c=>pre?String(c.number).toUpperCase().startsWith(pre)||c.set.printedTotal==t:c.set.printedTotal==t);
+      if(f.length) list=f;}
+    if(dex){const f=list.filter(c=>(c.nationalPokedexNumbers||[]).includes(dex)); if(f.length) list=f;}
+    if(code&&!tot){const f=list.filter(c=>String(c.set.ptcgoCode||"").toUpperCase()===code); if(f.length) list=f;}
+    return list.map(mapTcg);};
+  const fromTdx=async()=>{ // TCGdex: by set code (promos), else among this Pokémon's cards
+    if(code){try{const s=await tdxGet(`/sets/${encodeURIComponent(code.toLowerCase())}`);
+      const hit=(s.cards||[]).filter(c=>normNo(c.localId)===clean); if(hit.length) return mapTdx(hit,dex);}catch(_){}}
+    if(!dex) return [];
+    return (await searchCards(dex)).filter(c=>c.src==="tcgdex"&&normNo(c.number)===clean);};
+  const [a,b]=await Promise.allSettled([fromPtcg(),fromTdx()]);
+  if(a.status==="rejected"&&b.status==="rejected") throw new Error("lookup");
   if(Date.now()-(settings.rateUpdated||0)>12*3600*1000) await refreshRate();
-  return list.map(mapTcg);
+  return mergeCards(a.status==="fulfilled"?a.value:[], b.status==="fulfilled"?b.value:[]);
 }
 /* ---------- in-app camera with card outline (auto-crops to the outline) ---------- */
 const CAM_OK=!!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia);
@@ -864,8 +938,8 @@ function liveCapture(fallbackInput){
     const el=document.createElement("div"); el.className="cam"; el.setAttribute("role","dialog"); el.setAttribute("aria-modal","true"); el.setAttribute("aria-label","Camera");
     el.innerHTML=`<video playsinline muted autoplay></video>
       <div class="frame" aria-hidden="true"><div class="numzone"><span>CARD NUMBER HERE</span></div></div>
-      <div class="ctop"><p>Fit the card inside the outline, number in the dashed box. Hold still until it's sharp.</p><button class="iconbtn" data-c="close" aria-label="Close camera"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
-      <div class="cbot"><button class="shutter" data-c="snap" aria-label="Take photo" disabled></button></div>`;
+      <div class="ctop"><p>Fit the card inside the outline, number in the dashed box. Blurry? Tap <b>2×</b> and hold the phone further away.</p><button class="iconbtn" data-c="close" aria-label="Close camera"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+      <div class="cbot"><button class="zoom" data-c="zoom" aria-label="Zoom" hidden>1×</button><button class="shutter" data-c="snap" aria-label="Take photo" disabled></button><span></span></div>`;
     document.body.appendChild(el);
     const video=el.querySelector("video"); let stream=null, done=false;
     history.pushState({...(history.state||{}),cam:1},"");
@@ -888,7 +962,15 @@ function liveCapture(fallbackInput){
       const tr=stream.getVideoTracks()[0];
       try{ const c=tr.getCapabilities?tr.getCapabilities():{}; if((c.focusMode||[]).includes("continuous")) await tr.applyConstraints({advanced:[{focusMode:"continuous"}]}); }catch(_){}
       video.srcObject=stream; await video.play().catch(()=>{});
-      el.querySelector(".shutter").disabled=false; };
+      el.querySelector(".shutter").disabled=false;
+      // 2x zoom: lets the phone sit further back, beyond its closest focus distance. Uses the camera's own zoom when it has one.
+      const zc=(tr.getCapabilities&&tr.getCapabilities().zoom)||null, zb=el.querySelector(".zoom");
+      let z=1; try{z=localStorage.getItem("dexbinder-zoom")==="2"?2:1;}catch(_){}
+      const setZoom=async v=>{z=v; zb.textContent=v+"×"; zb.setAttribute("aria-pressed",v===2?"true":"false");
+        if(zc&&zc.max>=2){ try{await tr.applyConstraints({advanced:[{zoom:v===2?2:Math.max(1,zc.min||1)}]}); video.style.transform=""; return;}catch(_){} }
+        video.style.transform=v===2?"scale(2)":""; };
+      zb.hidden=false; zb.onclick=()=>{const v=z===2?1:2; try{localStorage.setItem("dexbinder-zoom",String(v));}catch(_){} setZoom(v);};
+      setZoom(z); };
     const snap=()=>{
       const vw=video.videoWidth, vh=video.videoHeight; if(!vw||!vh) return;
       const R=video.getBoundingClientRect(), F=el.querySelector(".frame").getBoundingClientRect();
@@ -902,6 +984,7 @@ function liveCapture(fallbackInput){
     el.addEventListener("click",e=>{const a=e.target.closest("[data-c]"); if(!a) return;
       if(a.dataset.c==="close") finish(null);
       else if(a.dataset.c==="snap") snap();
+      else if(a.dataset.c==="zoom") return;
       else if(a.dataset.c==="native"){ finish(null); fallbackInput.click(); }});
     start();
   });
@@ -923,25 +1006,38 @@ function showScan(blob){
     <p class="status" id="sst" hidden></p>
     <div class="readout" id="sread" hidden></div>
     <div class="results" id="sres"></div>
-    <form id="sman" class="field" hidden><span class="note">Wrong card or nothing found? Check the number and search again.</span>
+    <form id="sman" class="field" hidden><span class="note">Wrong card or nothing found? Fix the number, or just type the Pokémon name to see all its cards.</span>
       <span class="label">Card number</span>
-      <div class="two"><input id="snum" placeholder="e.g. 199" autocomplete="off" required aria-label="Card number"><input id="stot" placeholder="of e.g. 165" autocomplete="off" aria-label="Set total"></div>
-      <input id="sname" placeholder="Pokémon name (optional)" autocomplete="off" aria-label="Pokémon name">
+      <div class="two"><input id="snum" placeholder="e.g. 199" autocomplete="off" aria-label="Card number"><input id="stot" placeholder="of e.g. 165" autocomplete="off" aria-label="Set total"></div>
+      <input id="sname" placeholder="Pokémon name" autocomplete="off" aria-label="Pokémon name">
       <button class="btn" type="submit">Find card</button>
     </form>
   </div>`);
   let photo=blob||null, list=[];
   const st=(m,busy)=>{$("#sst").hidden=false;$("#sst").innerHTML=(busy?'<span class="spin"></span>':"")+esc(m);};
   const showPhoto=b=>{const u=URL.createObjectURL(b);urls.push(u);$("#spv").src=u;$("#spv").hidden=false;};
-  const drawResults=()=>{$("#sres").innerHTML=list.map(c=>`<button class="res" data-id="${esc(c.id)}"><img loading="lazy" src="${esc(c.img)}" alt=""><b>${esc(c.cardName)}</b><span>${esc(c.set)} · ${esc(c.number)}${c.rarity?`<br>${badge(c.rarity)} ${esc(rLabel(c.rarity))}`:""}</span>${(()=>{const u=usdOf(c.prices,pickVariant(c.prices));return u!=null?`<span class="mk">${toRM(u)!=null?money(toRM(u)):usd(u)}</span>`:"";})()}</button>`).join("");};
+  const drawResults=()=>{$("#sres").innerHTML=list.map(c=>`<button class="res${c.best?" best":""}" data-id="${esc(c.id)}"><img loading="lazy" src="${esc(c.img)}" alt="">${c.best?'<i class="tag">Best match</i>':""}<b>${esc(c.cardName)}</b><span>${esc(c.set)} · ${esc(c.number)}${c.rarity?`<br>${badge(c.rarity)} ${esc(rLabel(c.rarity))}`:""}</span>${(()=>{const u=usdOf(c.prices,pickVariant(c.prices));return u!=null?`<span class="mk">${toRM(u)!=null?money(toRM(u)):usd(u)}</span>`:"";})()}</button>`).join("");};
+  let clues="";
   const find=async q=>{
-    if(!q.num){st("Couldn't read the card number. Type it below.");$("#sman").hidden=false;return;}
-    $("#snum").value=q.num; $("#stot").value=q.total||""; if(q.dex) $("#sname").value=SPECIES[q.dex-1][0];
-    st(`Looking up ${q.num}${q.total?"/"+q.total:""}${q.dex?" · "+SPECIES[q.dex-1][0]:""}…`,true);
-    try{ list=await lookupScan(q); }catch(_){ st("Couldn't reach the card database. Check your connection and try again."); $("#sman").hidden=false; return; }
+    if(q.clues!=null) clues=q.clues;
+    const nm=q.dex?SPECIES[q.dex-1][0]:"";
+    if(q.num){ $("#snum").value=q.num; $("#stot").value=q.total||""; }
+    if(q.dex) $("#sname").value=nm;
+    list=[];
+    if(q.num){
+      st(`Looking up ${q.code?q.code+" ":""}${q.num}${q.total?"/"+q.total:""}${nm?" · "+nm:""}…`,true);
+      try{ list=await lookupScan(q); }catch(_){ if(!q.dex){ st("Couldn't reach the card database. Check your connection and try again."); $("#sman").hidden=false; return; } }
+    }
     $("#sman").hidden=false;
-    if(!list.length){st("No card found with that number. Check the number below and try again.");drawResults();return;}
-    st(list.length===1?"Found it. Tap the card to add it.":`${list.length} possible matches. Tap yours.`);
+    if(list.length){ st(list.length===1?"Found it. Tap the card to add it.":`${list.length} possible matches. Tap yours.`); drawResults(); return; }
+    if(!q.dex){ st(q.num?"No card found with that number. Check the number below and try again.":"Couldn't read the card number. Type it below."); drawResults(); return; }
+    // Number missing or not found: show every card of this Pokémon, best guess first.
+    st(`Finding ${nm} cards…`,true);
+    let all=[]; try{ all=await searchCards(q.dex); }catch(_){ st("Couldn't reach the card database. Check your connection and try again."); return; }
+    const hint=`${clues} ${q.code||""} ${q.num||""} ${q.total||""}`;
+    list=all.map((c,i)=>{const v=clueScore(c,hint);return {c,i,s:v>=3?v:0};}).sort((x,y)=>y.s-x.s||x.i-y.i).map(x=>x.s>=3?{...x.c,best:true}:x.c);
+    const top=list.filter(c=>c.best).length;
+    st(!list.length?`No ${nm} cards found. Enter it by hand.`:top?`${top===1?"Best match first":"Best matches first"}, then all ${list.length} ${nm} cards. Tap yours.`:`Couldn't read the number clearly. Here are all ${list.length} ${nm} cards, newest first. Tap yours.`);
     drawResults();
   };
   const run=async b=>{
@@ -950,21 +1046,23 @@ function showScan(blob){
     let r;
     try{ r=await readCard(b,m=>st(m,true)); }
     catch(_){ st(OCR_FAIL); $("#sman").hidden=false; return; }
-    $("#sread").hidden=false; $("#sread").textContent=`Read: ${r.num?r.num+(r.total?"/"+r.total:""):"no number"}${r.dex?" · "+SPECIES[r.dex-1][0]:""}`;
+    $("#sread").hidden=false; $("#sread").textContent=`Read: ${r.num?(r.code?r.code+" ":"")+r.num+(r.total?"/"+r.total:""):"no clear number"}${r.dex?" · "+SPECIES[r.dex-1][0]:""}`;
     find(r);
   };
   $("#scam").addEventListener("change",e=>{const f=e.target.files[0];if(f)run(f);});
   $("#sgal").addEventListener("change",e=>{const f=e.target.files[0];if(f)run(f);});
   $("#sman").addEventListener("submit",e=>{e.preventDefault();
     const nm=$("#sname").value.trim().toLowerCase(); const hit=nm?SPECIES.findIndex(([x])=>x.toLowerCase()===nm):-1;
-    find({num:$("#snum").value.trim(),total:$("#stot").value.trim()||null,dex:hit>=0?hit+1:null});});
+    const nv=$("#snum").value.trim(), pm=nv.match(/^([A-Za-z]{2,6})\s*(\d{1,3})$/);
+    if(!nv&&hit<0) return st("Type the card number or the Pokémon name.");
+    find({num:pm?pm[2]:(nv||null),code:pm?pm[1].toUpperCase():null,total:$("#stot").value.trim()||null,dex:hit>=0?hit+1:null});});
   $("#sheet").onclick=ev=>{const a=ev.target.closest("[data-act]");if(a&&a.dataset.act==="close") return closeSheet();
-    const r=ev.target.closest(".res"); if(!r) return; const c=list.find(x=>x.id===r.dataset.id); if(!c) return;
+    const r=ev.target.closest(".res"); if(!r) return; (async()=>{ const c=await withPrices(list.find(x=>x.id===r.dataset.id)); if(!c) return;
     if(view.startsWith("b:")) return showItemForm({...c},{binderId:view.slice(2),scanPhoto:photo});
     const dex=c.dexNums.find(d=>d>=1&&d<=1025);
     if(!dex) return toast("That card isn't a Pokémon in the National Dex.");
     const prev=entries.get(dex)||{};
-    showForm(dex,{...c,price:prev.price,notes:prev.notes,added:prev.added},false,false,photo);};
+    showForm(dex,{...c,price:prev.price,notes:prev.notes,added:prev.added},false,false,photo);})();};
   if(blob){showPhoto(blob);$("#sman").hidden=false;}
 }
 
@@ -1011,17 +1109,22 @@ const itemHead=(it,label)=>{const d=(it.dexNums||[]).find(x=>x>=1&&x<=1025);
 async function nameSearch(text){
   const t=text.trim(); if(!t) return [];
   const nm=t.match(/^([A-Za-z]{0,4}\d{1,3})\s*\/\s*([A-Za-z]{0,3}\d{2,3})$/); if(nm) return lookupScan({num:nm[1],total:nm[2],dex:null});
+  const pm=t.match(/^([A-Za-z]{2,6})\s*(?:EN\s*)?#?\s*(\d{1,3})$/); if(pm&&!dexFromName(pm[1])) return lookupScan({num:pm[2],total:null,dex:null,code:pm[1].toUpperCase()});
   const safe=t.replace(/["\\]/g,"");
   const q=/\s/.test(safe)?`name:"${safe}*"`:`name:${safe}*`;
-  const r=await fetch(`https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(q)}&orderBy=-set.releaseDate&pageSize=60&select=id,name,number,rarity,set,images,tcgplayer,nationalPokedexNumbers`);
-  if(!r.ok) throw new Error("search"); if(Date.now()-(settings.rateUpdated||0)>12*3600*1000) await refreshRate();
-  return (await r.json()).data.map(mapTcg);
+  const [a,b]=await Promise.allSettled([
+    (async()=>{const r=await fetch(`https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(q)}&orderBy=-set.releaseDate&pageSize=60&select=id,name,number,rarity,set,images,tcgplayer,nationalPokedexNumbers`);
+      if(!r.ok) throw new Error("search"); return (await r.json()).data.map(mapTcg);})(),
+    (async()=>(await mapTdx(await tdxGet(`/cards?name=${encodeURIComponent(safe)}`))).reverse().slice(0,80))()]);
+  if(a.status==="rejected"&&b.status==="rejected") throw new Error("search");
+  if(Date.now()-(settings.rateUpdated||0)>12*3600*1000) await refreshRate();
+  return mergeCards(a.status==="fulfilled"?a.value:[], b.status==="fulfilled"?b.value:[]);
 }
 function addToBinder(binderId,replaceId){
   const b=binders.get(binderId);
   openSheet(`<div class="sheet-head"><h2 id="sheetTitle"><small>${esc(b.name.toUpperCase())}</small>${replaceId?"Replace card":"Add a card"}</h2>${closeBtn}</div><div class="sheet-body">
     <form id="nsf" class="field"><label class="label" for="ns">Search cards</label>
-      <div class="tools" style="padding:0"><input class="search" id="ns" type="search" placeholder="Pokémon or card name, or 199/165" autocomplete="off"><button class="btn primary" type="submit">Search</button></div></form>
+      <div class="tools" style="padding:0"><input class="search" id="ns" type="search" placeholder="Name, 199/165 or MEP 101" autocomplete="off"><button class="btn primary" type="submit">Search</button></div></form>
     <p class="status" id="nst" hidden></p>
     <div class="results" id="nres"></div>
     <div class="row">${replaceId?"":`<button class="btn" data-act="scan">Scan a card</button>`}<button class="btn" data-act="manual">Enter by hand</button></div>
@@ -1038,9 +1141,9 @@ function addToBinder(binderId,replaceId){
     if(a&&a.dataset.act==="close") return closeSheet();
     if(a&&a.dataset.act==="scan") return showScan();
     if(a&&a.dataset.act==="manual"){const prev=replaceId?items.get(replaceId):{};return showItemForm({price:prev.price,notes:prev.notes,added:prev.added},{binderId,itemId:replaceId,manual:true});}
-    const r=ev.target.closest(".res"); if(!r) return; const c=list.find(x=>x.id===r.dataset.id); if(!c) return;
+    const r=ev.target.closest(".res"); if(!r) return; (async()=>{ const c=await withPrices(list.find(x=>x.id===r.dataset.id)); if(!c) return;
     const prev=replaceId?items.get(replaceId):{};
-    showItemForm({...c,price:prev.price,notes:prev.notes,added:prev.added,myValue:null},{binderId,itemId:replaceId});};
+    showItemForm({...c,price:prev.price,notes:prev.notes,added:prev.added,myValue:null},{binderId,itemId:replaceId});})();};
 }
 async function showItem(id){
   const it=items.get(id); if(!it) return closeSheet();
