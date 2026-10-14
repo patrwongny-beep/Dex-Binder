@@ -85,7 +85,7 @@ header.top{background:var(--felt)}
 .chip em{font-style:normal;opacity:.75;font-weight:500;margin-left:5px;font-family:var(--f-mono);font-size:12px}
 
 /* binder pages */
-main{padding-block:14px 48px}
+main{padding-block:14px 96px}
 .binder{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,330px),1fr));gap:14px}
 .page{background:var(--page);border:1px solid var(--sleeve-edge);border-radius:16px;padding:10px;box-shadow:var(--shadow)}
 .page-h{display:flex;justify-content:space-between;align-items:baseline;padding:0 2px 8px;font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;color:var(--muted)}
@@ -117,6 +117,17 @@ main{padding-block:14px 48px}
 .pocket.card .nm{background:linear-gradient(transparent,rgb(0 0 0 / .75) 45%);color:#fff}
 .pocket.card .nm i{color:#e8e6e1!important}
 .pocket.card .no{background:rgb(0 0 0 / .55);color:#fff;border-radius:6px;padding:1px 5px;top:5px;left:5px}
+.rb{display:inline-flex;align-items:center;height:20px;padding:0 6px;border-radius:6px;font-family:var(--f-mono);font-size:10.5px;font-weight:600;letter-spacing:.02em;background:var(--well);color:var(--muted);border:1px solid var(--sleeve-edge);vertical-align:middle}
+.rb.hi{background:linear-gradient(135deg,var(--gold-hi),var(--gold));color:var(--on-gold);border-color:transparent}
+.pocket .rb{position:absolute;top:5px;right:5px;z-index:2}
+.rsel{flex:none;max-width:46%;border:1px solid var(--sleeve-edge);background:var(--sleeve);border-radius:999px;padding:0 10px;min-height:36px;font-size:13px;font-weight:700}
+.rsel.on{background:var(--gold);border-color:var(--gold);color:var(--on-gold)}
+.fab{position:fixed;z-index:15;right:max(16px,calc(env(safe-area-inset-right,0px) + 16px));bottom:calc(18px + env(safe-area-inset-bottom,0px));display:inline-flex;align-items:center;gap:8px;min-height:54px;padding:0 20px 0 16px;border-radius:999px;border:0;background:var(--ink);color:var(--felt);font-weight:800;font-size:15px;box-shadow:0 6px 20px rgb(0 0 0 / .3)}
+.fab svg{width:22px;height:22px}
+.scanpv{width:100%;max-height:300px;object-fit:contain;border-radius:12px;background:var(--well)}
+.readout{font-family:var(--f-mono);font-size:13px;background:var(--well);border-radius:10px;padding:8px 10px;color:var(--muted);overflow-wrap:anywhere}
+.spin{display:inline-block;width:16px;height:16px;border:2px solid var(--sleeve-edge);border-top-color:var(--gold);border-radius:50%;animation:sp 0.8s linear infinite;vertical-align:-3px;margin-right:6px}
+@keyframes sp{to{transform:rotate(360deg)}}
 .empty{text-align:center;color:var(--muted);padding:40px 0}
 
 /* sheet */
@@ -164,7 +175,7 @@ dl.facts dd{margin:0;font-weight:600;font-variant-numeric:tabular-nums;min-width
 .genrow .bar2 i{display:block;height:100%;background:var(--gold)}
 .genrow span:last-child{text-align:right;color:var(--muted);font-family:var(--f-mono);font-size:12.5px}
 .note{font-size:14px;color:var(--muted);margin:0}
-.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--felt);padding:11px 16px;border-radius:12px;z-index:40;font-weight:600;max-width:90vw}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(86px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--felt);padding:11px 16px;border-radius:12px;z-index:40;font-weight:600;max-width:90vw}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -201,12 +212,13 @@ dl.facts dd{margin:0;font-weight:600;font-variant-numeric:tabular-nums;min-width
         <button data-f="need" aria-pressed="false">Need</button>
       </div>
     </div>
-    <div class="gens" id="gens"></div>
+    <div class="gens"><select class="rsel" id="rfilter" aria-label="Filter by rarity"><option value="">All rarities</option></select><div id="gens" style="display:contents"></div></div>
   </div>
 </div>
 
 <main class="wrap"><div class="binder" id="grid"></div><p class="empty" id="none" hidden>No Pokémon match that filter.</p></main>
 
+<button class="fab" id="scanBtn" aria-label="Scan a card"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2"/><rect x="8" y="7" width="8" height="10" rx="1.5"/></svg>Scan card</button>
 <div class="scrim" id="scrim" hidden></div>
 <section class="sheet wrap" id="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="sheetTitle"></section>
 <input type="file" id="restoreFile" accept="application/json,.json" hidden>
@@ -235,7 +247,7 @@ const get=(st,k)=>tx(st,"readonly",s=>s.get(k));
 async function getAllKV(st){const d=await db();return new Promise((res,rej)=>{const out={};const t=d.transaction(st);const c=t.objectStore(st).openCursor();c.onsuccess=()=>{const cur=c.result;if(cur){out[cur.key]=cur.value;cur.continue();}};t.oncomplete=()=>res(out);t.onerror=()=>rej(t.error);});}
 
 let entries=new Map(); let settings={currency:"RM",lastBackup:null};
-let filter="all", gen=0, query="";
+let filter="all", gen=0, query="", rfilter="";
 
 async function load(){
   try{ (await getAll("entries")).forEach(e=>entries.set(e.dex,e));
@@ -254,6 +266,13 @@ const vName=k=>VARIANT_NAMES[k]||k;
 const usdOf=(pr,v)=>{const p=pr&&v&&pr[v];return p?(p.market??p.mid??null):null;};
 function variants(pr){return pr?Object.keys(pr).filter(k=>usdOf(pr,k)!=null):[];}
 function pickVariant(pr,pref){const ks=variants(pr);if(!ks.length)return null;if(pref&&ks.includes(pref))return pref;for(const k of ["holofoil","normal","reverseHolofoil","1stEditionHolofoil"]) if(ks.includes(k)) return k;return ks[0];}
+const RARITY=[["Common","C"],["Uncommon","U"],["Rare","R"],["Rare Holo","RH"],["Double Rare","RR"],["Rare Holo EX","EX"],["Rare Holo GX","GX"],["Rare Holo V","V"],["Rare Holo VMAX","VMAX"],["Rare Holo VSTAR","VSTAR"],["Rare Ultra","FA"],["Ultra Rare","UR"],["Illustration Rare","IR"],["Special Illustration Rare","SIR"],["Hyper Rare","HR"],["Rare Secret","SR"],["Rare Rainbow","RNB"],["Rare Shiny","SH"],["Shiny Rare","SHR"],["Shiny Ultra Rare","SUR"],["Rare Shiny GX","SGX"],["Trainer Gallery Rare Holo","TG"],["Amazing Rare","AR"],["Radiant Rare","RAD"],["Rare Prism Star","PS"],["Rare BREAK","BRK"],["Rare Holo LV.X","LVX"],["ACE SPEC Rare","ACE"],["Promo","PR"]];
+const RCODE=Object.fromEntries(RARITY);
+const RLABEL={"Rare Ultra":"Ultra Rare (Full Art)","Rare Secret":"Secret Rare","Rare Rainbow":"Rainbow Rare","Rare Holo":"Holo Rare"};
+const rLabel=r=>RLABEL[r]||r;
+const rCode=r=>r?(RCODE[r]||r.replace(/[^A-Z]/g,"").slice(0,4)||r.slice(0,3).toUpperCase()):"";
+const HIGH=new Set(["IR","SIR","HR","SR","RNB","FA","UR","SHR","SUR","SGX","TG","AR","RAD","GX","VMAX","VSTAR","ACE"]);
+const badge=r=>r?`<span class="rb${HIGH.has(rCode(r))?" hi":""}" title="${esc(rLabel(r))}">${esc(rCode(r))}</span>`:"";
 const rate=()=>settings.rateOverride||settings.usdMyr||null;
 const toRM=u=>u!=null&&rate()?Math.round(u*rate()*100)/100:null;
 const marketOf=e=>toRM(e.usd);
@@ -296,6 +315,7 @@ async function refreshPrices(manual){
 /* ---------- grid ---------- */
 function genOf(n){let g=0;for(let i=0;i<9;i++) if(n>=GEN_START[i]) g=i;return g;}
 function renderGens(){
+  renderRarities();
   const counts=Array(9).fill(0); entries.forEach(e=>counts[genOf(e.dex)]++);
   const tot=i=>(i<8?GEN_START[i+1]:1026)-GEN_START[i];
   $("#gens").innerHTML=`<button class="chip" data-g="0" aria-pressed="${gen===0}">All gens</button>`+
@@ -309,18 +329,19 @@ function totals(){
 }
 function pocket(n){
   const [name]=SPECIES[n-1], e=entries.get(n);
-  if(!e) return `<button class="pocket" data-n="${n}" aria-label="#${n} ${esc(name)}, missing"><span class="no">#${pad(n)}</span><img class="sp${PIXEL?" px":""}" loading="lazy" decoding="async" alt="" width="96" height="96" src="${PIXEL?SPRITE(n):ART(n)}"${PIXEL?"":` onerror="this.onerror=null;this.classList.add('px');this.src='${SPRITE(n)}'"`}><span class="nm">${esc(name)}</span></button>`;
+  if(!e) return `<button class="pocket" data-n="${n}" aria-label="#${n} ${esc(name)}, missing"><span class="no">#${pad(n)}</span><img class="sp${PIXEL?" px":""}" loading="lazy" decoding="async" alt="" width="96" height="96" src="${PIXEL?SPRITE(n):ART(n)}"${PIXEL?"":` onerror="this.onerror=function(){this.style.visibility='hidden'};this.classList.add('px');this.src='${SPRITE(n)}'"`}><span class="nm">${esc(name)}</span></button>`;
   const v=valueOf(e), d=v!=null&&e.price!=null?v-e.price:null;
   const sub=v!=null?`<i class="${d>0?"up":d<0?"down":""}">${short(v)}</i>`:`<i>${esc(e.set||"")}</i>`;
   const card=e.img?`<img class="cardimg" loading="lazy" decoding="async" alt="" src="${esc(e.img)}" onerror="this.closest('.pocket').classList.remove('card');this.remove()">`:"";
-  return `<button class="pocket owned${e.img?" card":""}" data-n="${n}" aria-label="#${n} ${esc(name)}, owned"><img class="sp${PIXEL?" px":""}" loading="lazy" decoding="async" alt="" width="96" height="96" src="${PIXEL?SPRITE(n):ART(n)}"${PIXEL?"":` onerror="this.onerror=null;this.classList.add('px');this.src='${SPRITE(n)}'"`}>${card}<span class="no">#${pad(n)}</span><span class="nm">${esc(name)}${sub}</span></button>`;
+  return `<button class="pocket owned${e.img?" card":""}" data-n="${n}" aria-label="#${n} ${esc(name)}, owned${e.rarity?", "+esc(rLabel(e.rarity)):""}">${badge(e.rarity)}<img class="sp${PIXEL?" px":""}" loading="lazy" decoding="async" alt="" width="96" height="96" src="${PIXEL?SPRITE(n):ART(n)}"${PIXEL?"":` onerror="this.onerror=function(){this.style.visibility='hidden'};this.classList.add('px');this.src='${SPRITE(n)}'"`}>${card}<span class="no">#${pad(n)}</span><span class="nm">${esc(name)}${sub}</span></button>`;
 }
 function render(){
   const q=query.trim().toLowerCase(), qn=/^\d+$/.test(q)?String(parseInt(q,10)):null;
-  const flat=filter!=="all"||gen||q;
+  const flat=filter!=="all"||gen||q||rfilter;
   const match=n=>{const name=SPECIES[n-1][0],have=entries.has(n);
     if(filter==="have"&&!have) return false; if(filter==="need"&&have) return false;
     if(gen&&genOf(n)!==gen-1) return false;
+    if(rfilter&&(!have||rCode(entries.get(n).rarity)!==rfilter)) return false;
     if(q){ if(qn!==null) return String(n).startsWith(qn); return name.toLowerCase().includes(q); }
     return true;};
   let html="",shown=0;
@@ -341,6 +362,15 @@ function render(){
 }
 $("#q").addEventListener("input",e=>{query=e.target.value;render();});
 document.querySelectorAll(".seg button").forEach(b=>b.addEventListener("click",()=>{filter=b.dataset.f;document.querySelectorAll(".seg button").forEach(x=>x.setAttribute("aria-pressed",x===b));render();}));
+function renderRarities(){
+  const codes=new Map(); entries.forEach(e=>{if(e.rarity){const c=rCode(e.rarity);codes.set(c,(codes.get(c)||0)+1);}});
+  const order=RARITY.map(r=>r[1]); const ix=c=>{const i=order.indexOf(c);return i<0?999:i;}; const list=[...codes.keys()].sort((a,b)=>ix(a)-ix(b));
+  if(rfilter&&!codes.has(rfilter)) rfilter="";
+  const lab=c=>{const r=RARITY.find(x=>x[1]===c);return r?rLabel(r[0]):c;};
+  const el=$("#rfilter"); el.innerHTML=`<option value="">All rarities</option>`+list.map(c=>`<option value="${esc(c)}" ${c===rfilter?"selected":""}>${esc(c)} · ${esc(lab(c))} (${codes.get(c)})</option>`).join("");
+  el.classList.toggle("on",!!rfilter);
+}
+$("#rfilter").addEventListener("change",e=>{rfilter=e.target.value;e.target.classList.toggle("on",!!rfilter);render();});
 $("#gens").addEventListener("click",e=>{const b=e.target.closest(".chip");if(!b)return;gen=+b.dataset.g;renderGens();render();});
 $("#grid").addEventListener("click",e=>{const p=e.target.closest(".pocket");if(p) openSlot(+p.dataset.n);});
 
@@ -368,7 +398,7 @@ async function showFilled(n,e){
       <dt>Card</dt><dd>${esc(e.cardName)}</dd>
       <dt>Set</dt><dd>${esc(e.set)}${e.series?` <span class="note">(${esc(e.series)})</span>`:""}</dd>
       <dt>Number</dt><dd>${esc(e.number)}</dd>
-      ${e.rarity?`<dt>Rarity</dt><dd>${esc(e.rarity)}</dd>`:""}
+      ${e.rarity?`<dt>Rarity</dt><dd>${badge(e.rarity)} ${esc(rLabel(e.rarity))}</dd>`:""}
     </dl>
     <div class="label">Value</div>
     <dl class="facts">
@@ -396,14 +426,15 @@ async function showFilled(n,e){
 }
 
 /* card search: pokemontcg.io, falls back to TCGdex */
+const mapTcg=c=>({id:c.id,cardName:c.name,number:`${c.number}/${c.set.printedTotal??"?"}`,set:c.set.name,series:c.set.series,rarity:c.rarity||"",released:c.set.releaseDate||"",img:c.images?.small||"",imgLarge:c.images?.large||"",src:"pokemontcg",prices:c.tcgplayer?.prices||null,priceUpdated:Date.now(),dexNums:c.nationalPokedexNumbers||[]});
 const cardCache=new Map();
 async function searchCards(n){
   if(cardCache.has(n)) return cardCache.get(n);
   let out=[];
   try{
-    const r=await fetch(`https://api.pokemontcg.io/v2/cards?q=nationalPokedexNumbers:${n}&orderBy=-set.releaseDate&pageSize=250&select=id,name,number,rarity,set,images,tcgplayer`);
+    const r=await fetch(`https://api.pokemontcg.io/v2/cards?q=nationalPokedexNumbers:${n}&orderBy=-set.releaseDate&pageSize=250&select=id,name,number,rarity,set,images,tcgplayer,nationalPokedexNumbers`);
     if(!r.ok) throw 0; const j=await r.json();
-    out=j.data.map(c=>({id:c.id,cardName:c.name,number:`${c.number}/${c.set.printedTotal??"?"}`,set:c.set.name,series:c.set.series,rarity:c.rarity||"",released:c.set.releaseDate||"",img:c.images?.small||"",imgLarge:c.images?.large||"",src:"pokemontcg",prices:c.tcgplayer?.prices||null,priceUpdated:Date.now()}));
+    out=j.data.map(mapTcg);
     if(Date.now()-(settings.rateUpdated||0)>12*3600*1000) await refreshRate();
   }catch(_){
     const r=await fetch(`https://api.tcgdex.net/v2/en/cards?dexId=eq:${n}`);
@@ -422,7 +453,7 @@ async function showSearch(n){
   let list=[];
   const draw=()=>{const f=$("#cf").value.trim().toLowerCase();
     const shown=list.filter(c=>!f||`${c.set} ${c.series} ${c.number} ${c.rarity} ${c.cardName}`.toLowerCase().includes(f));
-    $("#res").innerHTML=shown.map(c=>`<button class="res" data-id="${esc(c.id)}"><img loading="lazy" src="${esc(c.img)}" alt=""><b>${esc(c.set)}</b><span>${esc(c.cardName)} · ${esc(c.number)}${c.rarity?`<br>${esc(c.rarity)}`:""}</span>${(()=>{const u=usdOf(c.prices,pickVariant(c.prices));return u!=null?`<span class="mk">${toRM(u)!=null?money(toRM(u)):usd(u)}</span>`:"";})()}</button>`).join("");
+    $("#res").innerHTML=shown.map(c=>`<button class="res" data-id="${esc(c.id)}"><img loading="lazy" src="${esc(c.img)}" alt=""><b>${esc(c.set)}</b><span>${esc(c.cardName)} · ${esc(c.number)}${c.rarity?`<br>${badge(c.rarity)} ${esc(rLabel(c.rarity))}`:""}</span>${(()=>{const u=usdOf(c.prices,pickVariant(c.prices));return u!=null?`<span class="mk">${toRM(u)!=null?money(toRM(u)):usd(u)}</span>`:"";})()}</button>`).join("");
     $("#st").textContent=list.length?`${shown.length} of ${list.length} cards`:"";};
   $("#sheet").onclick=ev=>{const a=ev.target.closest("[data-act]");
     if(a&&a.dataset.act==="close") return closeSheet();
@@ -440,15 +471,18 @@ async function shrink(file){
   c.getContext("2d").drawImage(bmp,0,0,c.width,c.height);
   return new Promise(r=>c.toBlob(b=>r(b||file),"image/jpeg",.85));
 }
-async function showForm(n,e,editing,manual){
+async function showForm(n,e,editing,manual,scanPhoto){
   let existing=null; try{existing=await get("photos",n);}catch(_){}
+  if(scanPhoto) existing=scanPhoto;
   let preview=""; if(existing){const u=URL.createObjectURL(existing);urls.push(u);preview=u;}
   openSheet(head(n)+`<form class="sheet-body" id="f">
+    ${scanPhoto&&entries.has(n)&&!editing?`<p class="note" style="color:var(--down)">This replaces the card already in slot #${n} (${esc(entries.get(n).set)} ${esc(entries.get(n).number)}).</p>`:""}
     ${manual?`<div class="field"><label class="label" for="fn">Card name</label><input id="fn" required value="${esc(e.cardName||SPECIES[n-1][0])}"></div>
     <div class="two"><div class="field"><label class="label" for="fs">Set</label><input id="fs" required value="${esc(e.set||"")}"></div>
-    <div class="field"><label class="label" for="fnum">Number</label><input id="fnum" required placeholder="e.g. 58/102" value="${esc(e.number||"")}"></div></div>`
+    <div class="field"><label class="label" for="fnum">Number</label><input id="fnum" required placeholder="e.g. 58/102" value="${esc(e.number||"")}"></div></div>
+    <div class="field"><label class="label" for="frar">Rarity</label><select id="frar"><option value="">Not set</option>${RARITY.map(([r,c])=>`<option value="${esc(r)}" ${r===e.rarity?"selected":""}>${esc(c)} · ${esc(rLabel(r))}</option>`).join("")}</select></div>`
     :`<div class="filled"><figure>${e.img?`<img src="${esc(e.img)}" alt="">`:`<div class="noimg">No image</div>`}</figure>
-      <dl class="facts" style="align-content:start"><dt>Set</dt><dd>${esc(e.set)}</dd><dt>No.</dt><dd>${esc(e.number)}</dd>${e.rarity?`<dt>Rarity</dt><dd>${esc(e.rarity)}</dd>`:""}</dl></div>`}
+      <dl class="facts" style="align-content:start"><dt>Set</dt><dd>${esc(e.set)}</dd><dt>No.</dt><dd>${esc(e.number)}</dd>${e.rarity?`<dt>Rarity</dt><dd>${badge(e.rarity)} ${esc(rLabel(e.rarity))}</dd>`:""}</dl></div>`}
     ${variants(e.prices).length?`<div class="field"><label class="label" for="fv">Printing (sets the market price)</label><select id="fv">${variants(e.prices).map(k=>`<option value="${esc(k)}" ${k===pickVariant(e.prices,e.variant)?"selected":""}>${esc(vName(k))} · ${usd(usdOf(e.prices,k))}${toRM(usdOf(e.prices,k))!=null?` ≈ ${money(toRM(usdOf(e.prices,k)))}`:""}</option>`).join("")}</select></div>`:""}
     <div class="two">
       <div class="field"><label class="label" for="fp">Price paid (RM)</label><input id="fp" type="number" inputmode="decimal" step="0.01" min="0" value="${e.price??""}"></div>
@@ -463,16 +497,16 @@ async function showForm(n,e,editing,manual){
     <div class="field"><label class="label" for="fnotes">Notes</label><textarea id="fnotes" rows="2" placeholder="Condition, where you bought it…">${esc(e.notes||"")}</textarea></div>
     <div class="row"><button type="button" class="btn" data-act="back">Back</button><button type="submit" class="btn primary">Save to slot</button></div>
   </form>`);
-  let newPhoto=null;
+  let newPhoto=scanPhoto||null;
   const pick=async ev=>{const f=ev.target.files[0];if(!f)return;newPhoto=await shrink(f);const u=URL.createObjectURL(newPhoto);urls.push(u);$("#pv").src=u;$("#pv").hidden=false;};
   $("#fcam").addEventListener("change",pick); $("#fgal").addEventListener("change",pick);
   $("#sheet").onclick=ev=>{const a=ev.target.closest("[data-act]");if(!a)return;
     if(a.dataset.act==="close") closeSheet();
-    if(a.dataset.act==="back") (editing&&entries.get(n))?showFilled(n,entries.get(n)):showSearch(n);};
+    if(a.dataset.act==="back") scanPhoto?showScan(scanPhoto):(editing&&entries.get(n))?showFilled(n,entries.get(n)):showSearch(n);};
   $("#f").addEventListener("submit",async ev=>{ev.preventDefault();
     const p=$("#fp").value;
     const rec={dex:n,id:e.id||null,cardName:manual?$("#fn").value.trim():e.cardName,set:manual?$("#fs").value.trim():e.set,
-      number:manual?$("#fnum").value.trim():e.number,series:manual?"":e.series||"",rarity:manual?"":e.rarity||"",
+      number:manual?$("#fnum").value.trim():e.number,series:manual?"":e.series||"",rarity:manual?$("#frar").value:e.rarity||"",
       img:manual?"":e.img||"",price:p===""?null:Math.round(parseFloat(p)*100)/100,notes:$("#fnotes").value.trim(),
       added:e.added||Date.now(),src:manual?"manual":(e.src||"pokemontcg")};
     const mv=$("#fmv").value; rec.myValue=mv===""?null:Math.round(parseFloat(mv)*100)/100;
@@ -480,6 +514,107 @@ async function showForm(n,e,editing,manual){
     try{ await put("entries",rec); if(newPhoto) await put("photos",newPhoto,n); }catch(_){ return toast("Couldn't save. Is your phone storage full?"); }
     entries.set(n,rec); renderGens(); render(); showFilled(n,rec); toast(`Saved #${n} ${SPECIES[n-1][0]}`);
   });
+}
+
+/* ---------- scan a card (text recognition on the phone) ---------- */
+let ocrWorker=null;
+const OCR_FAIL="Text recognition isn't available right now (it needs internet the first time). Type the card number below.";
+function loadScript(src){return new Promise((res,rej)=>{if(document.querySelector(`script[src="${src}"]`))return res();const t=document.createElement("script");t.src=src;t.onload=res;t.onerror=()=>rej(new Error("load"));document.head.appendChild(t);});}
+async function getOcr(){
+  if(ocrWorker) return ocrWorker;
+  await loadScript("https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js");
+  ocrWorker=await Promise.race([Tesseract.createWorker("eng"),new Promise((_,rej)=>setTimeout(()=>rej(new Error("timeout")),45000))]);
+  return ocrWorker;
+}
+function crop(bmp,x,y,w,h,scale){const c=document.createElement("canvas");c.width=Math.round(w*scale);c.height=Math.round(h*scale);const g=c.getContext("2d");g.imageSmoothingQuality="high";g.drawImage(bmp,x,y,w,h,0,0,c.width,c.height);return c;}
+const NAMES=SPECIES.map(([nm],i)=>({n:i+1,k:nm.toUpperCase().replace(/[^A-Z0-9]/g,"")})).filter(x=>x.k.length>=3).sort((a,b)=>b.k.length-a.k.length);
+function parseScan(text){
+  const T=text.toUpperCase().replace(/[Oo](?=\d)|(?<=\d)[Oo]/g,"0");
+  let num=null,total=null;
+  const re=/\b([A-Z]{0,4}\d{1,3})\s*[\/|\\]\s*([A-Z]{0,3}\d{2,3})\b/g; let m, best=null;
+  while((m=re.exec(T))){const t=parseInt(m[2].replace(/\D/g,""),10); if(t>=10&&t<=400){best=m;break;}}
+  if(best){num=best[1];total=best[2];}
+  const flat=T.replace(/[^A-Z0-9]/g,"");
+  const hit=NAMES.find(x=>flat.includes(x.k));
+  return {num,total,dex:hit?hit.n:null};
+}
+async function readCard(blob,onStep){
+  const bmp=await createImageBitmap(blob); const W=bmp.width,H=bmp.height;
+  const w=await getOcr(); onStep("Reading the card…");
+  const k=Math.min(1,1600/Math.max(W,H));
+  const full=await w.recognize(crop(bmp,0,0,W,H,k));
+  onStep("Reading the card number…");
+  const strip=await w.recognize(crop(bmp,0,Math.round(H*.8),W,Math.round(H*.2),Math.min(2.5,2400/W)));
+  const text=full.data.text+"\n"+strip.data.text;
+  const a=parseScan(strip.data.text), b=parseScan(text);
+  return {text:text.replace(/\s+/g," ").trim().slice(0,240), num:a.num||b.num, total:a.total||b.total, dex:b.dex};
+}
+async function lookupScan({num,total,dex}){
+  const clean=String(num).toUpperCase().replace(/^([A-Z]*)0+(\d)/,"$1$2");
+  const tot=total?String(total).toUpperCase().replace(/^([A-Z]*)0+(\d)/,"$1$2"):null;
+  const go=async q=>{const r=await fetch(`https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(q)}&pageSize=60&orderBy=-set.releaseDate&select=id,name,number,rarity,set,images,tcgplayer,nationalPokedexNumbers`);if(!r.ok)throw new Error("lookup");return (await r.json()).data;};
+  let list=dex?await go(`number:"${clean}" nationalPokedexNumbers:${dex}`):[];
+  if(!list.length) list=await go(`number:"${clean}"`);
+  {const f=list.filter(c=>String(c.number).toUpperCase()===clean); if(f.length) list=f;}
+  if(tot){const t=tot.replace(/\D/g,""), pre=tot.replace(/\d/g,"");
+    const f=list.filter(c=>pre?String(c.number).toUpperCase().startsWith(pre)||c.set.printedTotal==t:c.set.printedTotal==t);
+    if(f.length) list=f;}
+  if(dex){const f=list.filter(c=>(c.nationalPokedexNumbers||[]).includes(dex)); if(f.length) list=f;}
+  if(Date.now()-(settings.rateUpdated||0)>12*3600*1000) await refreshRate();
+  return list.map(mapTcg);
+}
+$("#scanBtn").addEventListener("click",()=>{pushSheet();showScan();});
+function showScan(blob){
+  openSheet(`<div class="sheet-head"><h2 id="sheetTitle"><small>SCAN</small>Scan a card</h2>${closeBtn}</div><div class="sheet-body">
+    <p class="note">Photograph the card straight on, filling the frame, with the number at the bottom in focus.</p>
+    <div class="row"><label class="btn primary">Take photo<input id="scam" type="file" accept="image/*" capture="environment" hidden></label>
+    <label class="btn">From gallery<input id="sgal" type="file" accept="image/*" hidden></label></div>
+    <img id="spv" class="scanpv" alt="Your card photo" hidden>
+    <p class="status" id="sst" hidden></p>
+    <div class="readout" id="sread" hidden></div>
+    <div class="results" id="sres"></div>
+    <form id="sman" class="field" hidden><span class="note">Wrong card or nothing found? Check the number and search again.</span>
+      <span class="label">Card number</span>
+      <div class="two"><input id="snum" placeholder="e.g. 199" autocomplete="off" required aria-label="Card number"><input id="stot" placeholder="of e.g. 165" autocomplete="off" aria-label="Set total"></div>
+      <input id="sname" placeholder="Pokémon name (optional)" autocomplete="off" aria-label="Pokémon name">
+      <button class="btn" type="submit">Find card</button>
+    </form>
+  </div>`);
+  let photo=blob||null, list=[];
+  const st=(m,busy)=>{$("#sst").hidden=false;$("#sst").innerHTML=(busy?'<span class="spin"></span>':"")+esc(m);};
+  const showPhoto=b=>{const u=URL.createObjectURL(b);urls.push(u);$("#spv").src=u;$("#spv").hidden=false;};
+  const drawResults=()=>{$("#sres").innerHTML=list.map(c=>`<button class="res" data-id="${esc(c.id)}"><img loading="lazy" src="${esc(c.img)}" alt=""><b>${esc(c.cardName)}</b><span>${esc(c.set)} · ${esc(c.number)}${c.rarity?`<br>${badge(c.rarity)} ${esc(rLabel(c.rarity))}`:""}</span>${(()=>{const u=usdOf(c.prices,pickVariant(c.prices));return u!=null?`<span class="mk">${toRM(u)!=null?money(toRM(u)):usd(u)}</span>`:"";})()}</button>`).join("");};
+  const find=async q=>{
+    if(!q.num){st("Couldn't read the card number. Type it below.");$("#sman").hidden=false;return;}
+    $("#snum").value=q.num; $("#stot").value=q.total||""; if(q.dex) $("#sname").value=SPECIES[q.dex-1][0];
+    st(`Looking up ${q.num}${q.total?"/"+q.total:""}${q.dex?" · "+SPECIES[q.dex-1][0]:""}…`,true);
+    try{ list=await lookupScan(q); }catch(_){ st("Couldn't reach the card database. Check your connection and try again."); $("#sman").hidden=false; return; }
+    $("#sman").hidden=false;
+    if(!list.length){st("No card found with that number. Check the number below and try again.");drawResults();return;}
+    st(list.length===1?"Found it. Tap the card to add it.":`${list.length} possible matches. Tap yours.`);
+    drawResults();
+  };
+  const run=async b=>{
+    photo=await shrink(b); showPhoto(photo); list=[]; drawResults(); $("#sread").hidden=true;
+    st("Loading text recognition (first time only)…",true);
+    let r;
+    try{ r=await readCard(photo,m=>st(m,true)); }
+    catch(_){ st(OCR_FAIL); $("#sman").hidden=false; return; }
+    $("#sread").hidden=false; $("#sread").textContent=`Read: ${r.num?r.num+(r.total?"/"+r.total:""):"no number"}${r.dex?" · "+SPECIES[r.dex-1][0]:""}`;
+    find(r);
+  };
+  $("#scam").addEventListener("change",e=>{const f=e.target.files[0];if(f)run(f);});
+  $("#sgal").addEventListener("change",e=>{const f=e.target.files[0];if(f)run(f);});
+  $("#sman").addEventListener("submit",e=>{e.preventDefault();
+    const nm=$("#sname").value.trim().toLowerCase(); const hit=nm?SPECIES.findIndex(([x])=>x.toLowerCase()===nm):-1;
+    find({num:$("#snum").value.trim(),total:$("#stot").value.trim()||null,dex:hit>=0?hit+1:null});});
+  $("#sheet").onclick=ev=>{const a=ev.target.closest("[data-act]");if(a&&a.dataset.act==="close") return closeSheet();
+    const r=ev.target.closest(".res"); if(!r) return; const c=list.find(x=>x.id===r.dataset.id); if(!c) return;
+    const dex=c.dexNums.find(d=>d>=1&&d<=1025);
+    if(!dex) return toast("That card isn't a Pokémon in the National Dex.");
+    const prev=entries.get(dex)||{};
+    showForm(dex,{...c,price:prev.price,notes:prev.notes,added:prev.added},false,false,photo);};
+  if(blob){showPhoto(blob);$("#sman").hidden=false;}
 }
 
 /* ---------- stats & backup ---------- */

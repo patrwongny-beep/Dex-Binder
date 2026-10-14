@@ -1,5 +1,5 @@
 // Dex Binder service worker: app shell offline, sprites and card images cached as you browse.
-const SHELL = "dexbinder-shell-v3";
+const SHELL = "dexbinder-shell-v4";
 const MEDIA = "dexbinder-media-v1";
 const API = "dexbinder-api-v1";
 const SHELL_FILES = ["./", "index.html", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png"];
@@ -12,7 +12,7 @@ self.addEventListener("activate", e => {
   e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => !keep.includes(k)).map(k => caches.delete(k)))).then(() => self.clients.claim()));
 });
 
-const isMedia = u => /raw\.githubusercontent\.com|images\.pokemontcg\.io|assets\.tcgdex\.net|fonts\.(gstatic|googleapis)\.com/.test(u.host);
+const isMedia = u => /raw\.githubusercontent\.com|images\.pokemontcg\.io|assets\.tcgdex\.net|fonts\.(gstatic|googleapis)\.com|cdn\.jsdelivr\.net/.test(u.host);
 const isApi = u => /api\.pokemontcg\.io|api\.tcgdex\.net/.test(u.host);
 
 self.addEventListener("fetch", e => {
