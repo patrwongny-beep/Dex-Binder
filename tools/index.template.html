@@ -4,44 +4,29 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Dex Binder</title>
-<meta name="theme-color" content="#0d0f13">
+<meta name="theme-color" content="#D7263D">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
 <style>
-/* Layout: a collector's binder. Header = cover with completion ring and value strip; body = binder pages of nine card-shaped sleeves; detail opens as a sheet. */
+/* Layout: a device-style binder. Red header with logo and a cream readout panel; dark body of binder pages with sixteen card-shaped sleeves (4x4); detail opens as a sheet. */
 :root{
-  --felt:#e6e8ec; --page:#f7f8fa; --sleeve:#ffffff; --sleeve-edge:#cfd4dc; --well:#eef0f3;
-  --ink:#14161b; --muted:#5a616e; --faint:#8a909b;
-  --gold:#9a6408; --gold-hi:#c48a1c; --gold-soft:#f5e9cf; --on-gold:#ffffff;
-  --up:#137a3f; --down:#c0392b; --scrim:rgb(10 12 16 / .5);
-  --shadow:0 1px 2px rgb(20 22 27 / .06),0 6px 18px rgb(20 22 27 / .06);
-  --sheen:none;
-  --f-display:"Archivo",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --felt:#2A2D35; --page:#22252D; --sleeve:#2E3139; --sleeve-edge:#3A3E48; --well:#1C1E24;
+  --ink:#F4F1EA; --muted:#A9AEB8; --faint:#7C818D;
+  --gold:#FFD34D; --gold-hi:#FFE27F; --gold-soft:#3A3218; --on-gold:#15171C;
+  --up:#5FD08E; --down:#FF7A6B; --scrim:rgb(0 0 0 / .6);
+  --shadow:0 1px 2px rgb(0 0 0 / .4),0 8px 22px rgb(0 0 0 / .35);
+  --sheen:linear-gradient(115deg,transparent 35%,rgb(255 255 255 / .07) 48%,transparent 60%);
+  --red:#D7263D; --red-dk:#7E0C1E; --cream:#F4F1EA; --cream-ink:#15171C; --cream-mute:#5A5F6B; --cream-line:#DCD7CC;
+  --f-display:"Chakra Petch","Archivo",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   --f-body:"Archivo",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
-  color-scheme:light;
+  color-scheme:dark;
 }
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --felt:#0d0f13; --page:#15181e; --sleeve:#1b1f27; --sleeve-edge:#2b313c; --well:#11141a;
-  --ink:#eeeae2; --muted:#a3a8b3; --faint:#6f7582;
-  --gold:#e2b04e; --gold-hi:#f3cf7e; --gold-soft:#2c2414; --on-gold:#17130a;
-  --up:#4fd18b; --down:#ff7a6b; --scrim:rgb(0 0 0 / .6);
-  --shadow:0 1px 2px rgb(0 0 0 / .4),0 8px 22px rgb(0 0 0 / .35);
-  --sheen:linear-gradient(115deg,transparent 35%,rgb(255 255 255 / .07) 48%,transparent 60%);
-  color-scheme:dark;}}
-:root[data-theme="dark"]{
-  --felt:#0d0f13; --page:#15181e; --sleeve:#1b1f27; --sleeve-edge:#2b313c; --well:#11141a;
-  --ink:#eeeae2; --muted:#a3a8b3; --faint:#6f7582;
-  --gold:#e2b04e; --gold-hi:#f3cf7e; --gold-soft:#2c2414; --on-gold:#17130a;
-  --up:#4fd18b; --down:#ff7a6b; --scrim:rgb(0 0 0 / .6);
-  --shadow:0 1px 2px rgb(0 0 0 / .4),0 8px 22px rgb(0 0 0 / .35);
-  --sheen:linear-gradient(115deg,transparent 35%,rgb(255 255 255 / .07) 48%,transparent 60%);
-  color-scheme:dark;}
 *{box-sizing:border-box}
 html,body{margin:0;background:var(--felt);color:var(--ink);font:16px/1.5 var(--f-body);-webkit-tap-highlight-color:transparent}
 img{max-width:100%}
@@ -283,6 +268,55 @@ dl.facts dd{margin:0;font-weight:600;font-variant-numeric:tabular-nums;min-width
 .cam .cmsg{position:absolute;left:16px;right:16px;top:38%;text-align:center;display:grid;gap:16px;justify-items:center}
 .cam .cmsg p{margin:0;font-size:15px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+/* ===== Device theme: Pokédex-inspired redesign ===== */
+html,body{background:var(--felt)}
+header.top{background:var(--red);border-bottom:4px solid var(--red-dk);color:#fff}
+header.top .bar{padding-block:12px 8px;gap:10px}
+.brand{gap:10px}
+.val > span{font-size:10.5px;letter-spacing:.04em;white-space:nowrap}
+.brand{font-family:var(--f-display)}
+.brand .logo{height:48px;filter:drop-shadow(0 2px 4px rgb(0 0 0 / .3))}
+.brand .ttl{display:flex;flex-direction:column;min-width:0;gap:2px}
+.brand #title{display:block;font-family:var(--f-display);font-weight:700;font-stretch:100%;font-size:17.5px;letter-spacing:.04em;text-transform:uppercase;color:#fff;line-height:1.05;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brand #subtitle{color:#FFE3E7;font-weight:600;letter-spacing:.08em}
+header.top .iconbtn{background:rgb(0 0 0 / .22);border-color:transparent;color:#fff}
+.summary{background:var(--cream);color:var(--cream-ink);border-radius:14px;padding:12px;margin-bottom:14px;box-shadow:inset 0 0 0 2px var(--red-dk)}
+.ring .track{stroke:var(--cream-line)}
+.ring .fill{stroke:var(--red)}
+.ring .pct b{font-family:var(--f-display);font-weight:700}
+.ring .pct span{color:var(--cream-mute)}
+.val{background:#fff;border-color:var(--cream-line)}
+.val > span{color:var(--cream-mute)}
+.val b{color:var(--cream-ink)}
+.summary .up{color:#11743A} .summary .down{color:#B3261E}
+.sticky{background:#22252D;border-bottom:1px solid #2E3139}
+.search{background:var(--well);border-color:var(--sleeve-edge)}
+.seg{background:var(--well)}
+.seg button[aria-pressed=true]{background:var(--cream);color:var(--cream-ink)}
+.chip,.rsel{background:transparent;border-color:var(--sleeve-edge);color:#C9CCD3;font-family:var(--f-display);font-weight:600;font-stretch:100%}
+.chip[aria-pressed=true],.rsel.on{background:var(--cream);border-color:var(--cream);color:var(--cream-ink);font-weight:700}
+.page{background:var(--page);border-color:var(--sleeve-edge)}
+.page-h{font-family:var(--f-display);font-size:12.5px;font-weight:600;letter-spacing:.1em;color:#C9CCD3}
+.page-h b{color:var(--ink)}
+.page-h .full{color:var(--gold)}
+.binder{grid-template-columns:repeat(auto-fill,minmax(min(100%,360px),1fr))}
+.grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.pocket{border-radius:8px}
+.pocket .no{font-size:10px;top:4px;left:5px}
+.pocket .nm{font-size:10.5px;padding:4px 5px 5px}
+.pocket.owned .nm i{font-size:10px;padding:0 4px}
+.pocket .rb{height:17px;padding:0 4px;font-size:10px;top:4px;right:4px}
+.pocket .types{right:5px;bottom:6px}
+.pocket .types b{width:6px;height:6px}
+.pocket.addcard{font-size:11px}
+.pocket.addcard svg{width:22px;height:22px}
+.fab{background:var(--red);color:#fff;font-family:var(--f-display);font-weight:700;letter-spacing:.04em;box-shadow:0 6px 20px rgb(215 38 61 / .45),0 0 0 4px #1A1C22}
+.btn.primary{background:var(--red);border-color:var(--red);color:#fff}
+.seg3 button[aria-pressed=true]{background:var(--cream);color:var(--cream-ink)}
+.sheet-head h2{font-family:var(--f-display);font-weight:700;font-stretch:100%;letter-spacing:.02em}
+.label{font-family:var(--f-display);font-weight:600;letter-spacing:.12em}
+.tile b{color:var(--ink)}
+.cover b{font-family:var(--f-display);font-weight:700;font-stretch:100%}
 </style>
 </head>
 <body>
@@ -291,7 +325,7 @@ dl.facts dd{margin:0;font-weight:600;font-variant-numeric:tabular-nums;min-width
   <div class="wrap">
     <div class="bar">
       <button class="iconbtn" id="backBtn" aria-label="Back to my binders" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
-      <h1 class="brand"><img class="logo" src="icons/logo.png" alt="" width="244" height="240"><span id="title" class="vh">Dex Binder</span><small id="subtitle" class="vh">NATIONAL DEX · #0001–1025</small></h1>
+      <h1 class="brand"><img class="logo" src="icons/logo.png" alt="" width="244" height="240"><span class="ttl"><span id="title">Dex Binder</span><small id="subtitle">NATIONAL DEX · #0001–1025</small></span></h1>
       <button class="iconbtn" id="editBtn" aria-label="Edit binder" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16v4zM14 6l4 4"/></svg></button>
       <button class="iconbtn" id="statsBtn" aria-label="Stats and backup">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
@@ -452,9 +486,10 @@ async function refreshPrices(manual){
 
 document.addEventListener("keydown",e=>{const l=e.target.closest&&e.target.closest("label.btn");if(l&&(e.key==="Enter"||e.key===" ")){e.preventDefault();const i=l.querySelector("input");if(i)i.click();}});
 /* ---------- appearance ---------- */
-function applyTheme(t){const r=document.documentElement; if(t==="light"||t==="dark") r.setAttribute("data-theme",t); else r.removeAttribute("data-theme");
+const PG=16; // pockets per binder page (4x4)
+function applyTheme(t){const r=document.documentElement; r.setAttribute("data-theme","dark");
   try{localStorage.setItem("dexbinder-theme",t||"auto");}catch(_){}
-  const m=document.querySelector('meta[name="theme-color"]'); if(m){const dark=t==="dark"||(t!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches); m.content=dark?"#0d0f13":"#e6e8ec";}}
+  const m=document.querySelector('meta[name="theme-color"]'); if(m){const dark=t==="dark"||(t!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches); m.content="#D7263D";}}
 try{applyTheme(localStorage.getItem("dexbinder-theme")||"auto");}catch(_){}
 
 /* ---------- celebration ---------- */
@@ -477,7 +512,7 @@ function confetti(colors,big){
 function celebrate(n,wasEmpty){
   const cols=[...typesOf(n).map(t=>TYPE_COL[t]),"#e2b04e","#f3cf7e","#ffffff"];
   if(!wasEmpty){confetti(cols,false);return;}
-  const p=Math.floor((n-1)/9), a=p*9+1, z=Math.min(a+8,1025);
+  const p=Math.floor((n-1)/PG), a=p*PG+1, z=Math.min(a+PG-1,1025);
   let pageDone=true; for(let i=a;i<=z;i++) if(!entries.has(i)) pageDone=false;
   const g=genOf(n), gs=GEN_START[g], ge=(g<8?GEN_START[g+1]:1026)-1; let genDone=true; for(let i=gs;i<=ge;i++) if(!entries.has(i)) {genDone=false;break;}
   if(entries.size===1025){confetti(TYPE_COL,true);setTimeout(()=>toast("National Dex complete! All 1,025 collected."),300);}
@@ -552,8 +587,8 @@ function renderDex(){
     return true;};
   let html="",shown=0;
   if(flat){ let g=""; for(let n=1;n<=1025;n++) if(match(n)){shown++;g+=pocket(n);} html=`<div class="grid">${g}</div>`; }
-  else for(let p=0;p<Math.ceil(1025/9);p++){
-    const a=p*9+1,z=Math.min(a+8,1025); let g="",have=0;
+  else for(let p=0;p<Math.ceil(1025/PG);p++){
+    const a=p*PG+1,z=Math.min(a+PG-1,1025); let g="",have=0;
     for(let n=a;n<=z;n++){g+=pocket(n); if(entries.has(n)) have++; shown++;}
     html+=`<section class="page" aria-label="Binder page ${p+1}"><div class="page-h"><span>PAGE <b>${p+1}</b> · #${pad(a)}–${pad(z)}</span><span class="${have===z-a+1?"full":""}">${have}/${z-a+1}</span></div><div class="grid">${g}</div></section>`;
   }
@@ -598,8 +633,8 @@ function renderBinder(){
   let html="";
   if(flat) html=`<div class="grid">${list.map(itemPocket).join("")}</div>`;
   else{ const cells=[...list.map(itemPocket),ADD_POCKET];
-    for(let p=0;p<Math.ceil(cells.length/9);p++){const g=cells.slice(p*9,p*9+9);const filled=Math.min(9,all.length-p*9);
-      html+=`<section class="page" aria-label="Binder page ${p+1}"><div class="page-h"><span>PAGE <b>${p+1}</b></span><span class="${filled===9?"full":""}">${Math.max(0,filled)}/9</span></div><div class="grid">${g.join("")}</div></section>`;}}
+    for(let p=0;p<Math.ceil(cells.length/PG);p++){const g=cells.slice(p*PG,p*PG+PG);const filled=Math.min(PG,all.length-p*PG);
+      html+=`<section class="page" aria-label="Binder page ${p+1}"><div class="page-h"><span>PAGE <b>${p+1}</b></span><span class="${filled===PG?"full":""}">${Math.max(0,filled)}/${PG}</span></div><div class="grid">${g.join("")}</div></section>`;}}
   const el=$("#grid"); el.className="binder"+(flat?" flat":"")+(render.done?"":" intro"); render.done=true; el.innerHTML=html;
   $("#none").hidden=!flat||list.length>0;
   setRing(all.length,all.length?1:0,all.length===1?"CARD":"CARDS",`${all.length} cards in ${b.name}`);
@@ -1287,7 +1322,7 @@ async function showItemForm(e,{binderId,itemId,manual,editing,scanPhoto}={}){
     if(view!=="b:"+binderId) setView("b:"+binderId); else {renderGens();render();}
     showItem(id); toast(isNew?`Added ${rec.cardName} to ${b.name}`:"Saved");
     if(isNew){const d=dexNums[0];const cols=[...(d?typesOf(d).map(t=>TYPE_COL[t]):[b.color]),"#e2b04e","#f3cf7e","#ffffff"];
-      const n=itemsIn(binderId).length; confetti(cols,n%9===0); if(n%9===0) setTimeout(()=>toast(`Page ${n/9} of ${b.name} is full!`),300);
+      const n=itemsIn(binderId).length; confetti(cols,n%PG===0); if(n%PG===0) setTimeout(()=>toast(`Page ${n/PG} of ${b.name} is full!`),300);
       const pk=document.querySelector(`.pocket[data-item="${id}"]`); if(pk){pk.classList.add("pop");pk.addEventListener("animationend",()=>pk.classList.remove("pop"),{once:true});}}
   });
 }
@@ -1320,8 +1355,6 @@ function showStats(){
     <div class="field"><label class="label" for="rto">Fixed USD→RM rate</label><input id="rto" type="number" inputmode="decimal" step="0.0001" min="0" placeholder="Blank = live rate" value="${settings.rateOverride??""}"></div>
     <div class="label">By generation</div>${rows}
     ${binders.size?`<div class="label">My binders</div>${(()=>{const allT=totals([...entries.values(),...items.values()]);const rowsB=[["National Dex",[...entries.values()]],...[...binders.values()].map(b=>[b.name,itemsIn(b.id)])].map(([n,l])=>{const t=totals(l);return `<div class="genrow" style="grid-template-columns:minmax(0,1fr) auto auto"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(n)}</span><span style="font-family:var(--f-mono);font-size:12.5px">${l.length} · ${short(t.worth)}</span><span>${t.both?gainHtml(t.bPaid,t.bVal).replace(/ \([^)]*\)/,""):"—"}</span></div>`;}).join("");return rowsB+`<p class="note">All binders: ${money(allT.paid)} paid, ${money(allT.worth)} value${allT.both?`, ${gainHtml(allT.bPaid,allT.bVal)}`:""}.</p>`;})()}`:""}
-    <div class="label">Appearance</div>
-    <div class="seg3" role="group" aria-label="Appearance">${["auto","light","dark"].map(t=>`<button data-theme-pick="${t}" aria-pressed="${(settings.theme||"auto")===t}">${t==="auto"?"Auto":t==="light"?"Light":"Dark"}</button>`).join("")}</div>
     <div class="label">Backup</div>
     <p class="note">Everything is stored only on this phone. Last backup: ${lb}. A backup file includes your photos.</p>
     <div class="row"><button class="btn primary" data-act="export">Save backup file</button><button class="btn" data-act="import">Restore from file</button></div>
