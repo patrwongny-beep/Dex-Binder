@@ -317,6 +317,60 @@ header.top .iconbtn{background:rgb(0 0 0 / .22);border-color:transparent;color:#
 .label{font-family:var(--f-display);font-weight:600;letter-spacing:.12em}
 .tile b{color:var(--ink)}
 .cover b{font-family:var(--f-display);font-weight:700;font-stretch:100%}
+/* value readout (card detail) */
+.vread{background:var(--cream);color:var(--cream-ink);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:10px;box-shadow:inset 0 0 0 2px var(--red-dk)}
+.vread-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.vread-h b{font-family:var(--f-display);font-weight:700;font-size:13.5px;letter-spacing:.12em}
+.vread-h span{font-family:var(--f-mono);font-size:11.5px;color:var(--cream-mute)}
+.vread-g{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.vread-g div{background:#fff;border-radius:12px;padding:9px 11px;min-width:0}
+.vread-g span{display:block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--cream-mute)}
+.vread-g b{display:block;font-family:var(--f-mono);font-weight:600;font-size:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vread-gain{display:flex;justify-content:space-between;align-items:center;gap:8px;border-radius:12px;padding:9px 11px;background:#ECE8DF;font-weight:700;font-size:14px}
+.vread-gain b{font-family:var(--f-mono);font-weight:600;font-size:14px;text-align:right}
+.vread-gain.up{background:#E3F2E8;color:#0E5E2F} .vread-gain.down{background:#FBE4E1;color:#9B1C12}
+.vread .up{color:#0E5E2F} .vread .down{color:#9B1C12}
+.vread-src{margin:0;font-family:var(--f-mono);font-size:11.5px;color:var(--cream-mute);overflow-wrap:anywhere}
+/* stats dial */
+.dexstat{background:var(--cream);color:var(--cream-ink);border-radius:16px;padding:14px;display:flex;gap:14px;align-items:center;box-shadow:inset 0 0 0 2px var(--red-dk)}
+.dial{position:relative;width:116px;height:116px;flex:none}
+.dial svg{width:116px;height:116px;display:block}
+.dial .tr{fill:none;stroke:var(--cream-line);stroke-width:12}
+.dial .fl{fill:none;stroke:var(--red);stroke-width:12;stroke-linecap:round}
+.dial-t{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1}
+.dial-t b{font-family:var(--f-display);font-weight:700;font-size:25px}
+.dial-t span{font-family:var(--f-mono);font-size:11.5px;color:var(--cream-mute);margin-top:4px}
+.dexstat-v{flex:1;min-width:0;display:flex;flex-direction:column;gap:7px}
+.dexstat-v span{display:block;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--cream-mute)}
+.dexstat-v b{display:block;font-family:var(--f-mono);font-weight:600;font-size:18px;overflow-wrap:anywhere}
+.dexstat-v em{align-self:flex-start;font-style:normal;font-family:var(--f-mono);font-weight:600;font-size:12.5px;padding:3px 8px;border-radius:9px;background:#ECE8DF}
+.dexstat .up{color:#0E5E2F} .dexstat .down{color:#9B1C12}
+.genrow .bar2 i{background:var(--red)} .genrow .bar2 i.hi{background:var(--gold)}
+/* backup reminder */
+.bkb{display:flex;align-items:center;gap:10px;background:var(--cream);color:var(--cream-ink);border-radius:14px;padding:10px 10px 10px 12px;margin-bottom:14px;box-shadow:inset 0 0 0 2px var(--gold)}
+.bkb svg{width:24px;height:24px;flex:none;color:var(--red)}
+.bkb p{margin:0;flex:1;min-width:0;font-size:13px;line-height:1.3;color:var(--cream-mute)}
+.bkb p b{display:block;color:var(--cream-ink);font-size:14px}
+.bkb .btn{min-height:44px;padding:0 12px;flex:none}
+.bkb .iconbtn{background:transparent;border-color:transparent;color:var(--cream-mute);width:36px;height:44px}
+.bk-status{border-radius:12px;padding:10px 12px;background:var(--sleeve);border:1px solid var(--sleeve-edge);font-size:14px}
+.bk-status.due{border-color:var(--gold);background:var(--gold-soft)}
+/* bottom nav */
+.fab{display:none!important}
+#statsBtn{display:none!important}
+main{padding-bottom:calc(112px + env(safe-area-inset-bottom,0px))}
+.toast{bottom:calc(98px + env(safe-area-inset-bottom,0px))}
+.bnav{position:fixed;left:0;right:0;bottom:0;z-index:15;background:#15171C;border-top:1px solid #2E3139;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));align-items:center;padding:6px max(8px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-left,0px))}
+.bnav button{border:0;background:none;color:#9AA0AB;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:56px;font-size:11px;font-weight:600;padding:0}
+.bnav button svg{width:22px;height:22px}
+.bnav button[aria-current=page]{color:var(--gold)}
+.bnav .bscan{justify-self:center;width:60px;height:60px;min-height:60px;margin-top:-28px;border-radius:50%;background:var(--red);color:#fff;border:4px solid #15171C;box-shadow:0 6px 18px rgb(215 38 61 / .45)}
+.bnav .bscan svg{width:26px;height:26px}
+@media (min-width:700px){.bnav{left:50%;right:auto;translate:-50% 0;width:520px;border-radius:18px 18px 0 0;border:1px solid #2E3139;border-bottom:0}}
+/* search jump highlight */
+.pocket.hit{outline:3px solid var(--gold);outline-offset:2px;animation:hit 1s ease 2}
+@keyframes hit{50%{transform:scale(1.07)}}
+@media (prefers-reduced-motion:reduce){.pocket.hit{animation:none}}
 </style>
 </head>
 <body>
@@ -358,9 +412,16 @@ header.top .iconbtn{background:rgb(0 0 0 / .22);border-color:transparent;color:#
   </div>
 </nav>
 
-<main class="wrap"><div class="binder" id="grid"></div><p class="empty" id="none" hidden>Nothing matches that filter.</p></main>
+<main class="wrap"><div id="bkb"></div><div class="binder" id="grid"></div><p class="empty" id="none" hidden>Nothing matches that name, number or filter.</p></main>
 
 <button class="fab" id="scanBtn" aria-label="Scan a card"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2"/><rect x="8" y="7" width="8" height="10" rx="1.5"/></svg>Scan card</button>
+<nav class="bnav" aria-label="Main">
+  <button data-nav="home" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>Binders</button>
+  <button data-nav="stats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Stats</button>
+  <button data-nav="scan" class="bscan" aria-label="Scan a card"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2"/><rect x="8" y="7" width="8" height="10" rx="1.5"/></svg></button>
+  <button data-nav="find"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>Search</button>
+  <button data-nav="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Settings</button>
+</nav>
 <div class="scrim" id="scrim" hidden></div>
 <canvas id="fx" aria-hidden="true"></canvas>
 <section class="sheet wrap" id="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="sheetTitle"></section>
@@ -481,7 +542,7 @@ async function refreshPrices(manual){
   if(!failed){settings.pricesUpdated=Date.now(); await put("meta",settings,"settings");}
   refreshing=false; render();
   if(manual) toast(failed?"Some prices couldn't be updated. Check your connection and try again.":`Updated ${updated} market price${updated===1?"":"s"}${rateOk?"":" · exchange rate unchanged"}`);
-  if(!$("#sheet").hidden && $("#statsMark")) showStats();
+  if(!$("#sheet").hidden && $("#statsMark")) showStats(); if(!$("#sheet").hidden && $("#settingsMark")) showSettings();
 }
 
 document.addEventListener("keydown",e=>{const l=e.target.closest&&e.target.closest("label.btn");if(l&&(e.key==="Enter"||e.key===" ")){e.preventDefault();const i=l.querySelector("input");if(i)i.click();}});
@@ -575,10 +636,13 @@ function setView(v,noPush){
   if(kind!=="shelf") renderGens();
   render();
 }
-function render(){ if(view==="shelf") return renderShelf(); if(view==="dex") return renderDex(); return renderBinder(); }
+function render(){ backupBanner(); if(view==="shelf") return renderShelf(); if(view==="dex") return renderDex(); return renderBinder(); }
 function renderDex(){
   const q=query.trim().toLowerCase(), qn=/^\d+$/.test(q)?String(parseInt(q,10)):null;
-  const flat=filter!=="all"||gen||q||rfilter;
+  const flat=!!(filter!=="all"||gen||rfilter), jump=!!q&&!flat;
+  let target=null;
+  if(jump){ if(qn!==null){const v=+qn; if(v>=1&&v<=1025) target=v;}
+    else { const ix=SPECIES.findIndex(s=>s[0].toLowerCase().startsWith(q)); const iy=ix<0?SPECIES.findIndex(s=>s[0].toLowerCase().includes(q)):ix; if(iy>=0) target=iy+1; } }
   const match=n=>{const name=SPECIES[n-1][0],have=entries.has(n);
     if(filter==="have"&&!have) return false; if(filter==="need"&&have) return false;
     if(gen&&genOf(n)!==gen-1) return false;
@@ -592,7 +656,8 @@ function renderDex(){
     for(let n=a;n<=z;n++){g+=pocket(n); if(entries.has(n)) have++; shown++;}
     html+=`<section class="page" aria-label="Binder page ${p+1}"><div class="page-h"><span>PAGE <b>${p+1}</b> · #${pad(a)}–${pad(z)}</span><span class="${have===z-a+1?"full":""}">${have}/${z-a+1}</span></div><div class="grid">${g}</div></section>`;
   }
-  const el=$("#grid"); el.className="binder"+(flat?" flat":"")+(render.done?"":" intro"); render.done=true; el.innerHTML=html; $("#none").hidden=shown>0;
+  const el=$("#grid"); el.className="binder"+(flat?" flat":"")+(render.done?"":" intro"); render.done=true; el.innerHTML=html; $("#none").hidden=jump||shown>0; if(jump&&!target) toast("No Pokémon matches that name or number");
+  if(target){const pk=el.querySelector(`.pocket[data-n="${target}"]`); if(pk){pk.classList.add("hit"); pk.scrollIntoView({block:"center",behavior:reduceMotion()?"auto":"smooth"});}}
   setRing(entries.size,entries.size/1025,"OF 1025",`${entries.size} of 1025 collected`);
   setHeaderTotals([...entries.values()]);
 }
@@ -683,6 +748,14 @@ const head=n=>`<div class="sheet-head typed" style="${tvars(n)}"><img class="${P
 
 async function openSlot(n){ pushSheet(); const e=entries.get(n); e?showFilled(n,e):showSearch(n); }
 
+function readout(e,hasId){
+  const v=valueOf(e), both=e.price!=null&&v!=null, d=both?v-e.price:null, cls=d>0.005?"up":d<-0.005?"down":"";
+  const src=e.myValue!=null?"Your own value, used instead of market":marketOf(e)!=null?`${usd(e.usd)} TCGplayer${e.variant?`, ${esc(vName(e.variant))}`:""} × ${rate()?rate().toFixed(2):"—"} MYR`:(hasId?"No TCGplayer price — use Edit details to add your own value":"Use Edit details to add your own value");
+  return `<section class="vread" aria-label="Value"><div class="vread-h"><b>VALUE READOUT</b><span>${e.priceUpdated?`updated ${new Date(e.priceUpdated).toLocaleDateString()}`:""}</span></div>
+    <div class="vread-g"><div><span>Paid</span><b>${money(e.price)}</b></div><div><span>${e.myValue!=null?"My value":"Market"}</span><b>${money(v)}</b></div></div>
+    ${both?`<div class="vread-gain ${cls}"><span>${d<-0.005?"Loss":"Gain"}</span><b>${gainHtml(e.price,v)}</b></div>`:""}
+    <p class="vread-src">${src}</p></section>`;
+}
 async function showFilled(n,e){
   let photo=""; try{const b=await get("photos",n); if(b){const u=URL.createObjectURL(b);urls.push(u);photo=u;}}catch(_){}
   openSheet(head(n)+`<div class="sheet-body">
@@ -696,14 +769,7 @@ async function showFilled(n,e){
       <dt>Number</dt><dd>${esc(e.number)}</dd>
       ${e.rarity?`<dt>Rarity</dt><dd>${badge(e.rarity)} ${esc(rLabel(e.rarity))}</dd>`:""}
     </dl>
-    <div class="label">Value</div>
-    <dl class="facts">
-      <dt>Price paid</dt><dd>${money(e.price)}</dd>
-      <dt>Market</dt><dd>${marketOf(e)!=null?`${money(marketOf(e))} <span class="note">· ${usd(e.usd)} TCGplayer${e.variant?`, ${esc(vName(e.variant))}`:""}</span>`:`— <span class="note">${e.id?"no TCGplayer price":"enter your own value"}</span>`}</dd>
-      ${e.myValue!=null?`<dt>My value</dt><dd>${money(e.myValue)} <span class="note">· used instead of market</span></dd>`:""}
-      <dt>Gain/loss</dt><dd>${gainHtml(e.price,valueOf(e))}</dd>
-      ${e.priceUpdated?`<dt>Price date</dt><dd>${new Date(e.priceUpdated).toLocaleDateString()}</dd>`:""}
-    </dl>
+    ${readout(e,!!e.id)}
     <dl class="facts">
       <dt>Added</dt><dd>${new Date(e.added).toLocaleDateString()}</dd>
       ${e.notes?`<dt>Notes</dt><dd>${esc(e.notes)}</dd>`:""}
@@ -1252,12 +1318,8 @@ async function showItem(id){
       <dt>Number</dt><dd>${esc(it.number)}</dd>
       ${it.rarity?`<dt>Rarity</dt><dd>${badge(it.rarity)} ${esc(rLabel(it.rarity))}</dd>`:""}
     </dl>
-    <div class="label">Value</div>
+    ${readout(it,!!it.cardId)}
     <dl class="facts">
-      <dt>Price paid</dt><dd>${money(it.price)}</dd>
-      <dt>Market</dt><dd>${marketOf(it)!=null?`${money(marketOf(it))} <span class="note">· ${usd(it.usd)} TCGplayer${it.variant?`, ${esc(vName(it.variant))}`:""}</span>`:`— <span class="note">${it.cardId?"no TCGplayer price":"enter your own value"}</span>`}</dd>
-      ${it.myValue!=null?`<dt>My value</dt><dd>${money(it.myValue)} <span class="note">· used instead of market</span></dd>`:""}
-      <dt>Gain/loss</dt><dd>${gainHtml(it.price,valueOf(it))}</dd>
       <dt>Added</dt><dd>${new Date(it.added).toLocaleDateString()}</dd>
       ${it.notes?`<dt>Notes</dt><dd>${esc(it.notes)}</dd>`:""}
     </dl>
@@ -1338,32 +1400,40 @@ function showStats(){
   const top=[...valued].sort((a,b)=>valueOf(b)-valueOf(a))[0];
   const noVal=all.length-valued.length;
   const counts=Array(9).fill(0); all.forEach(e=>counts[genOf(e.dex)]++);
-  const rows=ROMAN.map((r,i)=>{const t=(i<8?GEN_START[i+1]:1026)-GEN_START[i];return `<div class="genrow"><span>Gen ${r}</span><div class="bar2"><i style="width:${counts[i]/t*100}%"></i></div><span>${counts[i]}/${t} · ${Math.round(counts[i]/t*100)}%</span></div>`;}).join("");
-  const lb=settings.lastBackup?new Date(settings.lastBackup).toLocaleDateString():"never";
-  const pu=settings.pricesUpdated?new Date(settings.pricesUpdated).toLocaleString():"not yet";
-  openSheet(`<div class="sheet-head" id="statsMark"><h2 id="sheetTitle"><small>COLLECTION</small>Stats &amp; backup</h2>${closeBtn}</div><div class="sheet-body">
-    <div class="stat-tiles">
-      <div class="tile"><b>${(entries.size/1025*100).toFixed(1)}%</b><span>${entries.size} of 1025 filled</span></div>
-      <div class="tile"><b>${money(spent)}</b><span>total paid</span></div>
-      <div class="tile"><b>${money(worth)}</b><span>National Dex value</span></div>
-      <div class="tile"><b>${both.length?gainHtml(bPaid,bVal):"—"}</b><span>gain/loss</span></div>
-    </div>
+  const rows=ROMAN.map((r,i)=>{const t=(i<8?GEN_START[i+1]:1026)-GEN_START[i];const f=counts[i]/t;return `<div class="genrow"><span>Gen ${r}</span><div class="bar2"><i class="${f>=.5?"hi":""}" style="width:${f*100}%"></i></div><span>${counts[i]}/${t} · ${Math.round(f*100)}%</span></div>`;}).join("");
+  const frac=entries.size/1025, C=301.59;
+  openSheet(`<div class="sheet-head" id="statsMark"><h2 id="sheetTitle"><small>COLLECTION</small>Dex status</h2>${closeBtn}</div><div class="sheet-body">
+    <section class="dexstat" aria-label="National Dex summary">
+      <div class="dial" role="img" aria-label="${entries.size} of 1025 collected"><svg viewBox="0 0 116 116" aria-hidden="true"><circle class="tr" cx="58" cy="58" r="48"/><circle class="fl" cx="58" cy="58" r="48" stroke-dasharray="${(C*frac).toFixed(2)} ${C}" transform="rotate(-90 58 58)"${frac?"":` style="display:none"`}/></svg><div class="dial-t"><b>${(frac*100).toFixed(1)}%</b><span>${entries.size}/1025</span></div></div>
+      <div class="dexstat-v"><div><span>Market value</span><b>${money(worth)}</b></div><div><span>Total paid</span><b>${money(spent)}</b></div>${both.length?`<em>${gainHtml(bPaid,bVal)}</em>`:""}</div>
+    </section>
     <p class="note">${both.length?`Gain/loss compares the ${both.length} card${both.length===1?" that has":"s that have"} both a price paid and a value. `:""}${noVal?`${noVal} card${noVal===1?" has":"s have"} no value yet; add "My value" to include ${noVal===1?"it":"them"}. `:""}${top?`Most valuable: #${top.dex} ${esc(SPECIES[top.dex-1][0])}, ${esc(top.set)} ${esc(top.number)} at ${money(valueOf(top))}.`:""}</p>
+    <div class="label">By generation</div>${rows}
+    ${binders.size?`<div class="label">My binders</div>${(()=>{const allT=totals([...entries.values(),...items.values()]);const rowsB=[["National Dex",[...entries.values()]],...[...binders.values()].map(b=>[b.name,itemsIn(b.id)])].map(([n,l])=>{const t=totals(l);return `<div class="genrow" style="grid-template-columns:minmax(0,1fr) auto auto"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(n)}</span><span style="font-family:var(--f-mono);font-size:12.5px">${l.length} · ${short(t.worth)}</span><span>${t.both?gainHtml(t.bPaid,t.bVal).replace(/ \([^)]*\)/,""):"—"}</span></div>`;}).join("");return rowsB+`<p class="note">All binders: ${money(allT.paid)} paid, ${money(allT.worth)} value${allT.both?`, ${gainHtml(allT.bPaid,allT.bVal)}`:""}.</p>`;})()}`:""}
+    <button class="btn" data-act="settings">Prices &amp; backup settings</button>
+  </div>`);
+  $("#sheet").onclick=ev=>{const a=ev.target.closest("[data-act]");if(!a)return;
+    if(a.dataset.act==="close") closeSheet();
+    if(a.dataset.act==="settings") showSettings();
+  };
+}
+const daysSince=ts=>ts?Math.floor((Date.now()-ts)/864e5):null;
+function showSettings(){
+  const lb=settings.lastBackup, ds=daysSince(lb), due=lb==null||ds>=7;
+  const pu=settings.pricesUpdated?new Date(settings.pricesUpdated).toLocaleString():"not yet";
+  openSheet(`<div class="sheet-head" id="settingsMark"><h2 id="sheetTitle"><small>APP</small>Settings</h2>${closeBtn}</div><div class="sheet-body">
+    <div class="label">Backup</div>
+    <div class="bk-status${due?" due":""}"><b>${lb==null?"No backup yet":ds===0?"Backed up today":`Last backup ${ds} day${ds===1?"":"s"} ago`}</b>${lb?` <span class="note">(${new Date(lb).toLocaleDateString()})</span>`:""}</div>
+    <p class="note">Everything is stored only on this phone. <b>Save backup</b> opens your phone's share menu, so you can send the file to Google Drive, WhatsApp or email. The file includes your photos. You'll get a reminder if it's been more than 7 days.</p>
+    <div class="row"><button class="btn primary" data-act="export">Save backup</button><button class="btn" data-act="import">Restore from file</button></div>
+    <div id="imp"></div>
     <div class="label">Market prices</div>
     <p class="note">TCGplayer market prices in USD, converted at 1 USD = RM ${rate()?rate().toFixed(4):"—"}${settings.rateOverride?" (your rate)":settings.rateUpdated?` (live, ${new Date(settings.rateUpdated).toLocaleDateString()})`:""}. Last updated: ${pu}. Prices refresh by themselves once a day when you open the app.</p>
     <div class="row"><button class="btn" data-act="refresh">${refreshing?"Updating…":"Update prices now"}</button></div>
     <div class="field"><label class="label" for="rto">Fixed USD→RM rate</label><input id="rto" type="number" inputmode="decimal" step="0.0001" min="0" placeholder="Blank = live rate" value="${settings.rateOverride??""}"></div>
-    <div class="label">By generation</div>${rows}
-    ${binders.size?`<div class="label">My binders</div>${(()=>{const allT=totals([...entries.values(),...items.values()]);const rowsB=[["National Dex",[...entries.values()]],...[...binders.values()].map(b=>[b.name,itemsIn(b.id)])].map(([n,l])=>{const t=totals(l);return `<div class="genrow" style="grid-template-columns:minmax(0,1fr) auto auto"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(n)}</span><span style="font-family:var(--f-mono);font-size:12.5px">${l.length} · ${short(t.worth)}</span><span>${t.both?gainHtml(t.bPaid,t.bVal).replace(/ \([^)]*\)/,""):"—"}</span></div>`;}).join("");return rowsB+`<p class="note">All binders: ${money(allT.paid)} paid, ${money(allT.worth)} value${allT.both?`, ${gainHtml(allT.bPaid,allT.bVal)}`:""}.</p>`;})()}`:""}
-    <div class="label">Backup</div>
-    <p class="note">Everything is stored only on this phone. Last backup: ${lb}. A backup file includes your photos.</p>
-    <div class="row"><button class="btn primary" data-act="export">Save backup file</button><button class="btn" data-act="import">Restore from file</button></div>
-    <div id="imp"></div>
   </div>`);
-  $("#rto").addEventListener("change",async ev=>{const v=ev.target.value;settings.rateOverride=v===""?null:parseFloat(v);await put("meta",settings,"settings");showStats();});
-  $("#sheet").onclick=async ev=>{const tp=ev.target.closest("[data-theme-pick]");
-    if(tp){settings.theme=tp.dataset.themePick;applyTheme(settings.theme);document.querySelectorAll("[data-theme-pick]").forEach(b=>b.setAttribute("aria-pressed",b===tp));try{await put("meta",settings,"settings");}catch(_){}return;}
-    const a=ev.target.closest("[data-act]");if(!a)return;
+  $("#rto").addEventListener("change",async ev=>{const v=ev.target.value;settings.rateOverride=v===""?null:parseFloat(v);await put("meta",settings,"settings");showSettings();});
+  $("#sheet").onclick=async ev=>{const a=ev.target.closest("[data-act]");if(!a)return;
     if(a.dataset.act==="close") closeSheet();
     if(a.dataset.act==="refresh"&&!refreshing){a.textContent="Updating…";refreshPrices(true);}
     if(a.dataset.act==="export") exportBackup();
@@ -1372,6 +1442,20 @@ function showStats(){
     if(a.dataset.act==="doimp") doRestore();
   };
 }
+let bkSnooze=false;
+function backupBanner(){const el=$("#bkb"); if(!el) return;
+  const n=entries.size+items.size, lb=settings.lastBackup, ds=daysSince(lb);
+  el.innerHTML=(n>0&&!bkSnooze&&(lb==null||ds>=7))?`<div class="bkb" role="status"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6l8-3z"/><path d="M12 8v5M12 16.5v.5"/></svg><p><b>${lb==null?"No backup yet":`Last backup ${ds} days ago`}</b>Your cards live only on this phone.</p><button class="btn primary" data-bk="now">Back up</button><button class="iconbtn" data-bk="later" aria-label="Remind me later"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>`:"";
+}
+$("#bkb").addEventListener("click",ev=>{const b=ev.target.closest("[data-bk]");if(!b)return;
+  if(b.dataset.bk==="now") exportBackup(); else {bkSnooze=true;backupBanner();}});
+document.querySelector(".bnav").addEventListener("click",ev=>{const b=ev.target.closest("[data-nav]");if(!b)return;const a=b.dataset.nav;
+  if(a==="home"){ if(view!=="shelf") setView("shelf"); else window.scrollTo({top:0,behavior:reduceMotion()?"auto":"smooth"}); }
+  if(a==="stats"){pushSheet();showStats();}
+  if(a==="settings"){pushSheet();showSettings();}
+  if(a==="scan") $("#scanBtn").click();
+  if(a==="find"){ if(view==="shelf") setView("dex"); const q=$("#q"); q.focus({preventScroll:true}); q.scrollIntoView({block:"start"}); }
+});
 const toB64=b=>new Promise(r=>{const fr=new FileReader();fr.onload=()=>r(fr.result);fr.readAsDataURL(b);});
 async function exportBackup(){
   toast("Preparing backup…");
@@ -1384,7 +1468,7 @@ async function exportBackup(){
   try{
     if(navigator.canShare&&navigator.canShare({files:[file]})) await navigator.share({files:[file],title:"Dex Binder backup"});
     else { const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},2000); }
-    settings.lastBackup=Date.now(); await put("meta",settings,"settings"); toast("Backup saved");
+    settings.lastBackup=Date.now(); await put("meta",settings,"settings"); bkSnooze=false; backupBanner(); if(!$("#sheet").hidden&&$("#settingsMark")) showSettings(); toast("Backup saved");
   }catch(e){ if(e&&e.name!=="AbortError") toast("Backup was not saved."); }
 }
 let pending=null;
@@ -1401,7 +1485,7 @@ async function doRestore(){ const d=pending; if(!d) return;
     for(const k in d.photos){ const b=await (await fetch(d.photos[k])).blob(); await put("photos",b,/^\d+$/.test(k)?+k:k); }
     if(d.settings) { settings={...settings,...d.settings}; await put("meta",settings,"settings"); }
     entries=new Map(d.entries.map(e=>[e.dex,e])); binders=new Map((d.binders||[]).map(b=>[b.id,b])); items=new Map((d.items||[]).map(i=>[i.id,i]));
-    if(view.startsWith("b:")&&!binders.has(view.slice(2))) view="shelf"; setView(view,true); showStats(); toast(`Restored ${d.entries.length} cards`);
+    if(view.startsWith("b:")&&!binders.has(view.slice(2))) view="shelf"; setView(view,true); showSettings(); toast(`Restored ${d.entries.length} cards`);
   }catch(_){ toast("Restore failed partway. Try the file again."); }
 }
 
