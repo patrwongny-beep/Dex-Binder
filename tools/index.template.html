@@ -354,6 +354,7 @@ header.top .iconbtn{background:rgb(0 0 0 / .22);border-color:transparent;color:#
 .bkb .btn{min-height:44px;padding:0 12px;flex:none}
 .bkb .iconbtn{background:transparent;border-color:transparent;color:var(--cream-mute);width:36px;height:44px}
 .bk-status{border-radius:12px;padding:10px 12px;background:var(--sleeve);border:1px solid var(--sleeve-edge);font-size:14px}
+#bkout{display:flex;flex-direction:column;gap:10px}
 .bk-status.due{border-color:var(--gold);background:var(--gold-soft)}
 /* bottom nav */
 .fab{display:none!important}
@@ -425,7 +426,7 @@ main{padding-bottom:calc(112px + env(safe-area-inset-bottom,0px))}
 <div class="scrim" id="scrim" hidden></div>
 <canvas id="fx" aria-hidden="true"></canvas>
 <section class="sheet wrap" id="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="sheetTitle"></section>
-<input type="file" id="restoreFile" accept="application/json,.json" hidden>
+<input type="file" id="restoreFile" accept="application/json,.json,text/plain,.txt" hidden>
 
 <script>
 const SPECIES = __SPECIES__;
@@ -1424,8 +1425,9 @@ function showSettings(){
   openSheet(`<div class="sheet-head" id="settingsMark"><h2 id="sheetTitle"><small>APP</small>Settings</h2>${closeBtn}</div><div class="sheet-body">
     <div class="label">Backup</div>
     <div class="bk-status${due?" due":""}"><b>${lb==null?"No backup yet":ds===0?"Backed up today":`Last backup ${ds} day${ds===1?"":"s"} ago`}</b>${lb?` <span class="note">(${new Date(lb).toLocaleDateString()})</span>`:""}</div>
-    <p class="note">Everything is stored only on this phone. <b>Save backup</b> opens your phone's share menu, so you can send the file to Google Drive, WhatsApp or email. The file includes your photos. You'll get a reminder if it's been more than 7 days.</p>
+    <p class="note">Everything is stored only on this phone. Tap <b>Save backup</b>, then <b>Send to Drive / WhatsApp</b> to pick where it goes, or <b>Download to phone</b>. The file includes your photos. You'll get a reminder if it's been more than 7 days.</p>
     <div class="row"><button class="btn primary" data-act="export">Save backup</button><button class="btn" data-act="import">Restore from file</button></div>
+    <div id="bkout"></div>
     <div id="imp"></div>
     <div class="label">Market prices</div>
     <p class="note">TCGplayer market prices in USD, converted at 1 USD = RM ${rate()?rate().toFixed(4):"—"}${settings.rateOverride?" (your rate)":settings.rateUpdated?` (live, ${new Date(settings.rateUpdated).toLocaleDateString()})`:""}. Last updated: ${pu}. Prices refresh by themselves once a day when you open the app.</p>
@@ -1437,6 +1439,8 @@ function showSettings(){
     if(a.dataset.act==="close") closeSheet();
     if(a.dataset.act==="refresh"&&!refreshing){a.textContent="Updating…";refreshPrices(true);}
     if(a.dataset.act==="export") exportBackup();
+    if(a.dataset.act==="share") shareBackup();
+    if(a.dataset.act==="download") downloadBackup();
     if(a.dataset.act==="import") $("#restoreFile").click();
     if(a.dataset.act==="cancelimp") $("#imp").innerHTML="";
     if(a.dataset.act==="doimp") doRestore();
@@ -1457,20 +1461,33 @@ document.querySelector(".bnav").addEventListener("click",ev=>{const b=ev.target.
   if(a==="find"){ if(view==="shelf") setView("dex"); const q=$("#q"); q.focus({preventScroll:true}); q.scrollIntoView({block:"start"}); }
 });
 const toB64=b=>new Promise(r=>{const fr=new FileReader();fr.onload=()=>r(fr.result);fr.readAsDataURL(b);});
+// Backup in two taps: the first prepares the file, the second shares or downloads it.
+// Android only lets a page open the share menu straight after a tap, so sharing must not wait on the photo export.
+let bkFile=null;
 async function exportBackup(){
-  toast("Preparing backup…");
-  const photos=await getAllKV("photos"); const p={};
-  for(const k in photos) p[k]=await toB64(photos[k]);
-  const data={app:"dex-binder",version:2,exported:new Date().toISOString(),settings,entries:[...entries.values()],binders:[...binders.values()],items:[...items.values()],photos:p};
-  const blob=new Blob([JSON.stringify(data)],{type:"application/json"});
-  const name=`dex-binder-backup-${new Date().toISOString().slice(0,10)}.json`;
-  const file=new File([blob],name,{type:"application/json"});
+  if($("#sheet").hidden||!$("#settingsMark")){ if($("#sheet").hidden) pushSheet(); showSettings(); }
+  const box=$("#bkout"); if(!box) return;
+  box.innerHTML=`<p class="status"><span class="spin"></span>Preparing backup…</p>`;
   try{
-    if(navigator.canShare&&navigator.canShare({files:[file]})) await navigator.share({files:[file],title:"Dex Binder backup"});
-    else { const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},2000); }
-    settings.lastBackup=Date.now(); await put("meta",settings,"settings"); bkSnooze=false; backupBanner(); if(!$("#sheet").hidden&&$("#settingsMark")) showSettings(); toast("Backup saved");
-  }catch(e){ if(e&&e.name!=="AbortError") toast("Backup was not saved."); }
+    const photos=await getAllKV("photos"); const p={};
+    for(const k in photos) p[k]=await toB64(photos[k]);
+    const data={app:"dex-binder",version:2,exported:new Date().toISOString(),settings,entries:[...entries.values()],binders:[...binders.values()],items:[...items.values()],photos:p};
+    bkFile={blob:new Blob([JSON.stringify(data)],{type:"application/json"}),name:`dex-binder-backup-${new Date().toISOString().slice(0,10)}.json`};
+  }catch(e){ box.innerHTML=`<p class="status">Couldn't prepare the backup (${esc(e&&e.message||String(e))}). Please try again.</p>`; return; }
+  const mb=bkFile.blob.size/1048576;
+  box.innerHTML=`<div class="bk-status"><b>Backup ready</b> <span class="note">${esc(bkFile.name)} · ${mb<0.1?"<0.1":mb.toFixed(1)} MB</span></div>
+    <div class="row">${shareFile()?`<button class="btn primary" data-act="share">Send to Drive / WhatsApp</button>`:""}<button class="btn" data-act="download">Download to phone</button></div>`;
 }
+function shareFile(){ if(!bkFile||!navigator.canShare) return null;
+  const opts=[new File([bkFile.blob],bkFile.name,{type:"application/json"}),new File([bkFile.blob],bkFile.name.replace(/\.json$/,".txt"),{type:"text/plain"})];
+  return opts.find(f=>{try{return navigator.canShare({files:[f]});}catch(_){return false;}})||null; }
+async function markBackedUp(){ settings.lastBackup=Date.now(); try{await put("meta",settings,"settings");}catch(_){} bkSnooze=false; backupBanner(); }
+async function shareBackup(){ const f=shareFile(); if(!f) return downloadBackup();
+  try{ await navigator.share({files:[f],title:"Dex Binder backup"}); await markBackedUp(); toast("Backup saved"); if($("#settingsMark")) showSettings(); }
+  catch(e){ if(e&&e.name==="AbortError") return; toast("Sharing didn't work, so the file was downloaded instead"); downloadBackup(); } }
+async function downloadBackup(){ if(!bkFile) return;
+  const a=document.createElement("a"); a.href=URL.createObjectURL(bkFile.blob); a.download=bkFile.name; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},4000);
+  await markBackedUp(); toast("Backup downloaded to your phone's Downloads folder"); if($("#settingsMark")) setTimeout(showSettings,300); }
 let pending=null;
 $("#restoreFile").addEventListener("change",async ev=>{const f=ev.target.files[0];ev.target.value="";if(!f)return;
   try{ const d=JSON.parse(await f.text()); if(d.app!=="dex-binder"||!Array.isArray(d.entries)) throw 0; pending=d;
